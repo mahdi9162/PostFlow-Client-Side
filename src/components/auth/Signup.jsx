@@ -1,8 +1,36 @@
 import React from 'react';
 import Container from '../container/Container';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useForm } from 'react-hook-form';
+import useAuth from '../../hooks/useAuth';
 
 const Signup = () => {
+  const { signUpWithEmailPass } = useAuth();
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  //   regex
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const passValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}[\]:;"'<>,.?/\\|]).{8,15}$/;
+
+  const handleUserSignup = async (data) => {
+    const { email, password } = data;
+    try {
+      const res = await signUpWithEmailPass(email, password);
+      const userProfile = res.user;
+      alert('Your profile is created!');
+      navigate('/');
+      console.log(userProfile);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <Container>
       <section className="py-6 md:py-16 px-3 lg:px-0 flex items-center justify-center">
@@ -60,7 +88,7 @@ const Signup = () => {
                 <p className="text-sm mt-1 text-base-content/60">Join your team to start planning</p>
               </div>
 
-              <form className="space-y-5">
+              <form onSubmit={handleSubmit(handleUserSignup)} className="space-y-5">
                 <div className="grid md:grid-cols-2 gap-5">
                   <div className="form-control w-full">
                     <label className="label">
@@ -68,9 +96,14 @@ const Signup = () => {
                     </label>
                     <input
                       type="text"
+                      name="fullName"
+                      {...register('fullName', {
+                        required: 'Full name is required',
+                      })}
                       placeholder="Enter your name"
                       className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                     />
+                    {errors.fullName && <p className="text-left mt-1 text-xs text-red-400/80">{errors.fullName.message}</p>}
                   </div>
 
                   <div className="form-control w-full">
@@ -78,16 +111,21 @@ const Signup = () => {
                       <span className="label-text font-semibold">Team Role</span>
                     </label>
                     <select
+                      name="role"
+                      {...register('role', {
+                        required: 'Role is required',
+                      })}
                       defaultValue=""
                       className="select select-bordered w-full bg-base-200 focus:bg-base-100 rounded-xl border-base-200 "
                     >
-                      <option value="" disabled>
+                      <option value="" disabled hidden>
                         Enter your role
                       </option>
                       <option>Creator</option>
                       <option>Helper</option>
                       <option>Admin</option>
                     </select>
+                    {errors.role && <p className="text-left mt-1 text-xs text-red-400/80">{errors.role.message}</p>}
                   </div>
                 </div>
 
@@ -96,10 +134,13 @@ const Signup = () => {
                     <span className="label-text font-semibold">Email Address</span>
                   </label>
                   <input
+                    name="email"
                     type="email"
+                    {...register('email', { required: true, pattern: { value: emailRegex, message: 'Enter a valid email address' } })}
                     placeholder="name@company.com"
                     className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                   />
+                  {errors.email && <p className="text-left mt-1 text-xs text-red-400/80">{errors.email.message}</p>}
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-5">
@@ -109,9 +150,18 @@ const Signup = () => {
                     </label>
                     <input
                       type="password"
+                      name="password"
+                      {...register('password', {
+                        required: true,
+                        pattern: {
+                          value: passValidation,
+                          message: 'Use 8–15 chars with uppercase, lowercase, number & special symbol.',
+                        },
+                      })}
                       placeholder="••••••••"
                       className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                     />
+                    {errors.password && <p className="text-left mt-1 text-xs text-red-400/80">{errors.password.message}</p>}
                   </div>
 
                   <div className="form-control w-full">
@@ -120,15 +170,19 @@ const Signup = () => {
                     </label>
                     <input
                       type="password"
+                      name="confirmPassword"
+                      {...register('confirmPassword', {
+                        required: 'Please confirm your password',
+                        // eslint-disable-next-line react-hooks/incompatible-library
+                        validate: (value) => value === watch('password') || 'Passwords do not match',
+                      })}
                       placeholder="••••••••"
                       className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                     />
+                    {errors.confirmPassword && (
+                      <p className="text-left lg:ml-18 mt-1 text-xs text-red-400/80">{errors.confirmPassword.message}</p>
+                    )}
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 py-2">
-                  <input type="checkbox" className="checkbox checkbox-primary checkbox-sm rounded-md" />
-                  <span className="text-sm cursor-pointer select-none text-base-content/60">I agree to the internal tool guidelines.</span>
                 </div>
 
                 <button
