@@ -25,7 +25,6 @@ const Signup = () => {
       const userProfile = res.user;
       alert('Your profile is created!');
       navigate('/');
-      console.log(userProfile);
     } catch (error) {
       console.log(error);
     }
