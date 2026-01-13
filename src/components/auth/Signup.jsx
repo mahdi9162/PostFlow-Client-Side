@@ -184,7 +184,6 @@ const Signup = () => {
                       name="confirmPassword"
                       {...register('confirmPassword', {
                         required: 'Please confirm your password',
-                        // eslint-disable-next-line react-hooks/incompatible-library
                         validate: (value) => value === watch('password') || 'Passwords do not match',
                       })}
                       placeholder="••••••••"

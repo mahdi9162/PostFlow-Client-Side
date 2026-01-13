@@ -1,8 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Container from '../container/Container';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { useForm } from 'react-hook-form';
+import useAuth from '../../hooks/useAuth';
+import Loading from '../Loading/Loading';
 
 const Login = () => {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { signInWithEmailPass } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  //   regex
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const passValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}[\]:;"'<>,.?/\\|]).{8,15}$/;
+
+  const handleUserLogin = async (data) => {
+    const { email, password } = data;
+    setLoading(true);
+    try {
+      await signInWithEmailPass(email, password);
+      alert('Your are loggin in');
+      navigate('/');
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <Container>
       <section className="py-6 md:py-16 px-3 lg:px-0 flex items-center justify-center">
@@ -12,12 +46,7 @@ const Login = () => {
             <div className="flex items-center justify-center lg:justify-start gap-4 mb-6">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center rotate-3 bg-linear-to-br from-primary to-primary/70 shadow-[0_10px_20px_rgba(47,107,255,0.2)]">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
 
@@ -52,16 +81,19 @@ const Login = () => {
                 <p className="text-sm mt-1 text-muted">Use your team email to access the planner</p>
               </div>
 
-              <form className="space-y-5">
+              <form onSubmit={handleSubmit(handleUserLogin)} className="space-y-5">
                 <div className="form-control w-full">
                   <label className="label">
                     <span className="label-text font-semibold">Email</span>
                   </label>
                   <input
+                    name="email"
                     type="email"
+                    {...register('email', { required: true, pattern: { value: emailRegex, message: 'Enter a valid email address' } })}
                     placeholder="team@email.com"
                     className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-300"
                   />
+                  {errors.email && <p className="text-left mt-1 text-xs text-red-400/80">{errors.email.message}</p>}
                 </div>
 
                 <div className="form-control w-full">
@@ -70,32 +102,33 @@ const Login = () => {
                   </label>
                   <input
                     type="password"
+                    name="password"
+                    {...register('password', {
+                      required: true,
+                      pattern: {
+                        value: passValidation,
+                        message: 'Use 8–15 chars with uppercase, lowercase, number & special symbol.',
+                      },
+                    })}
                     placeholder="••••••••"
                     className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-300"
                   />
+                  {errors.password && <p className="text-left mt-1 text-xs text-red-400/80">{errors.password.message}</p>}
                 </div>
 
-                <div className="flex items-center justify-between gap-3 py-1">
-                  <label className="flex items-center gap-3 cursor-pointer select-none">
-                    <input type="checkbox" className="checkbox checkbox-primary checkbox-sm rounded-md" />
-                    <span className="text-sm text-muted">Remember me</span>
-                  </label>
-
-                  <button type="button" className="text-sm font-semibold text-primary hover:underline">
+                <div>
+                  <button type="button" className="text-sm font-semibold text-primary hover:underline cursor-pointer">
                     Forgot password?
                   </button>
                 </div>
 
-                <button
-                  type="button"
-                  className="btn btn-primary w-full h-14 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-primary/30 transition-all border-none bg-linear-to-b from-primary to-primary/80"
-                >
+                <button className="btn btn-primary w-full h-14 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-primary/30 transition-all border-none bg-linear-to-b from-primary to-primary/80">
                   Log in
                 </button>
 
                 <p className="text-center text-sm font-medium mt-4 text-muted">
                   New here?{' '}
-                  <Link to='/signup' type="button" className="text-primary font-bold hover:underline">
+                  <Link to="/signup" type="button" className="text-primary font-bold hover:underline">
                     Create account
                   </Link>
                 </p>
