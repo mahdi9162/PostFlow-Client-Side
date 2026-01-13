@@ -3,6 +3,7 @@ import Container from '../container/Container';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
+import Loading from '../Loading/Loading';
 
 const Signup = () => {
   const { signUpWithEmailPass, updateUserProfile } = useAuth();
@@ -38,7 +39,7 @@ const Signup = () => {
   };
 
   if (loading) {
-    return <span className="loading loading-ring loading-xl"></span>;
+    return <Loading />;
   }
 
   return (
