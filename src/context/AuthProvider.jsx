@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { AuthContext } from './AuthContext';
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  reload,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from 'firebase/auth';
 import { auth } from '../firebase/firebase.config';
 
 const AuthProvider = ({ children }) => {
@@ -18,6 +26,12 @@ const AuthProvider = ({ children }) => {
   const signInWithEmailPass = (email, password) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
+  };
+
+  // user verification email
+  const userVerification = () => {
+    if (!auth.currentUser) return Promise.reject('No current user');
+    return sendEmailVerification(auth.currentUser);
   };
 
   // sign out
@@ -42,13 +56,21 @@ const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  const refreshUser = async () => {
+    if (!auth.currentUser) return;
+    await reload(auth.currentUser);
+    setUser({ ...auth.currentUser });
+  };
+
   const authInfo = {
     user,
     loading,
     signUpWithEmailPass,
     signInWithEmailPass,
+    userVerification,
     userSignOut,
     updateUserProfile,
+    refreshUser,
   };
   return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;
 };

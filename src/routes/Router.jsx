@@ -7,6 +7,8 @@ import Pugsnortz from '../pages/public/pugsnortz/Pugsnortz';
 import Pugsnuff from '../pages/public/pugsnuff/Pugsnuff';
 import Signup from '../components/auth/Signup';
 import Login from '../components/auth/Login';
+import PrivateRoute from './PrivateRoute';
+import CheckEmail from '../pages/public/checkEmail/CheckEmail';
 
 export const router = createBrowserRouter([
   {
@@ -19,15 +21,27 @@ export const router = createBrowserRouter([
       },
       {
         path: 'snortpugs',
-        Component: Snortpugs,
+        element: (
+          <PrivateRoute>
+            <Snortpugs />
+          </PrivateRoute>
+        ),
       },
       {
         path: 'pugsnortz',
-        Component: Pugsnortz,
+        element: (
+          <PrivateRoute>
+            <Pugsnortz />
+          </PrivateRoute>
+        ),
       },
       {
         path: 'pugsnuff',
-        Component: Pugsnuff,
+        element: (
+          <PrivateRoute>
+            <Pugsnuff />
+          </PrivateRoute>
+        ),
       },
       {
         path: 'signup',
@@ -36,6 +50,10 @@ export const router = createBrowserRouter([
       {
         path: 'login',
         Component: Login,
+      },
+      {
+        path: 'check-email',
+        Component: CheckEmail,
       },
     ],
   },

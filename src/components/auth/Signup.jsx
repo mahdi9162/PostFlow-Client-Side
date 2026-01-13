@@ -4,9 +4,10 @@ import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
 import Loading from '../Loading/Loading';
+import toast from 'react-hot-toast';
 
 const Signup = () => {
-  const { signUpWithEmailPass, updateUserProfile } = useAuth();
+  const { signUpWithEmailPass, updateUserProfile, userVerification } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
@@ -23,14 +24,14 @@ const Signup = () => {
   const handleUserSignup = async (data) => {
     const { email, password, fullName } = data;
     setLoading(true);
-    try {
-      const res = await signUpWithEmailPass(email, password);
-      // eslint-disable-next-line no-unused-vars
-      const userProfile = res.user;
 
+    try {
+      await signUpWithEmailPass(email, password);
       await updateUserProfile({ displayName: fullName });
-      alert('Your profile is created!');
-      navigate('/');
+      await userVerification();
+
+      navigate('/check-email');
+      toast.success('Your profile is created!');
     } catch (error) {
       console.log(error);
     } finally {

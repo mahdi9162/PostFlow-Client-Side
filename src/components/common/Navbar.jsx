@@ -5,13 +5,15 @@ import { Link, NavLink } from 'react-router';
 import NavbarProfileDropdown from './NavbarProfileDropdown';
 import SignupButton from '../Buttons/authButtons/SignupButton';
 import LoginButton from '../Buttons/authButtons/LoginButton';
+import useAuth from '../../hooks/useAuth';
 
 const Navbar = () => {
+  const { user } = useAuth();
   const links = [
     { id: 1, name: 'Home', path: '/' },
-    { id: 2, name: 'Snortpugs', path: '/snortpugs' },
-    { id: 3, name: 'Pugsnortz', path: '/pugsnortz' },
-    { id: 4, name: 'Pugsnuff', path: '/pugsnuff' },
+    ...(user?.emailVerified ? [{ id: 2, name: 'Snortpugs', path: '/snortpugs' }] : []),
+    ...(user?.emailVerified ? [{ id: 3, name: 'Pugsnortz', path: '/pugsnortz' }] : []),
+    ...(user?.emailVerified ? [{ id: 4, name: 'Pugsnuff', path: '/pugsnuff' }] : []),
   ];
   return (
     <Container>
@@ -48,9 +50,16 @@ const Navbar = () => {
           </ul>
         </div>
         <div className="navbar-end flex gap-4">
-          <LoginButton />
-          <SignupButton />
-          <NavbarProfileDropdown></NavbarProfileDropdown>
+          {user ? (
+            <>
+              <NavbarProfileDropdown></NavbarProfileDropdown>
+            </>
+          ) : (
+            <>
+              <LoginButton />
+              <SignupButton />
+            </>
+          )}
         </div>
       </div>
     </Container>

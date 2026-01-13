@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
 import Loading from '../Loading/Loading';
+import { reload } from 'firebase/auth';
+import { auth } from '../../firebase/firebase.config';
+import toast from 'react-hot-toast';
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +27,13 @@ const Login = () => {
     setLoading(true);
     try {
       await signInWithEmailPass(email, password);
-      alert('Your are loggin in');
+      await reload(auth.currentUser);
+
+      if (!auth.currentUser.emailVerified) {
+        navigate('/check-email');
+        return;
+      }
+      toast.success('Your are loggin in');
       navigate('/');
     } catch (error) {
       console.log(error);
