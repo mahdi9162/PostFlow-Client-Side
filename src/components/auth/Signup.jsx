@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Container from '../container/Container';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
 
 const Signup = () => {
-  const { signUpWithEmailPass } = useAuth();
+  const { signUpWithEmailPass, updateUserProfile } = useAuth();
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const {
     register,
@@ -19,16 +20,26 @@ const Signup = () => {
   const passValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}[\]:;"'<>,.?/\\|]).{8,15}$/;
 
   const handleUserSignup = async (data) => {
-    const { email, password } = data;
+    const { email, password, fullName } = data;
+    setLoading(true);
     try {
       const res = await signUpWithEmailPass(email, password);
+      // eslint-disable-next-line no-unused-vars
       const userProfile = res.user;
+
+      await updateUserProfile({ displayName: fullName });
       alert('Your profile is created!');
       navigate('/');
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <span className="loading loading-ring loading-xl"></span>;
+  }
 
   return (
     <Container>
