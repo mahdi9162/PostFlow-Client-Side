@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signInWithEmailPass } = useAuth();
+  const { signInWithEmailPass, refreshUser } = useAuth();
   const {
     register,
     handleSubmit,
@@ -25,18 +25,26 @@ const Login = () => {
   const handleUserLogin = async (data) => {
     const { email, password } = data;
     setLoading(true);
+
     try {
       await signInWithEmailPass(email, password);
+
+      if (!auth.currentUser) throw new Error('No current user after login');
+
       await reload(auth.currentUser);
 
       if (!auth.currentUser.emailVerified) {
-        navigate('/check-email');
+        toast.info('Please verify your email. We sent you a link.');
+        navigate('/check-email', { replace: true });
         return;
       }
-      toast.success('Your are loggin in');
-      navigate('/');
+
+      await refreshUser();
+      toast.success('You are logged in!');
+      navigate('/', { replace: true });
     } catch (error) {
       console.log(error);
+      toast.error('Login failed. Check email/password.');
     } finally {
       setLoading(false);
     }

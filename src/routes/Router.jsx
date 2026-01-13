@@ -9,6 +9,9 @@ import Signup from '../components/auth/Signup';
 import Login from '../components/auth/Login';
 import PrivateRoute from './PrivateRoute';
 import CheckEmail from '../pages/public/checkEmail/CheckEmail';
+import DashboardLayout from '../layouts/DashboardLayout/dashboardLayout';
+import DashboardHome from '../pages/dashboard/dashboardHome/DashboardHome';
+import CreatePost from '../pages/dashboard/posts/CreatePost';
 
 export const router = createBrowserRouter([
   {
@@ -54,6 +57,24 @@ export const router = createBrowserRouter([
       {
         path: 'check-email',
         Component: CheckEmail,
+      },
+    ],
+  },
+  {
+    path: 'dashboard',
+    element: (
+      <PrivateRoute>
+        <DashboardLayout />
+      </PrivateRoute>
+    ),
+    children: [
+      {
+        index: true,
+        Component: DashboardHome,
+      },
+      {
+        path: '/dashboard/create-post',
+        Component: CreatePost,
       },
     ],
   },

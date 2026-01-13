@@ -14,6 +14,7 @@ const Navbar = () => {
     ...(user?.emailVerified ? [{ id: 2, name: 'Snortpugs', path: '/snortpugs' }] : []),
     ...(user?.emailVerified ? [{ id: 3, name: 'Pugsnortz', path: '/pugsnortz' }] : []),
     ...(user?.emailVerified ? [{ id: 4, name: 'Pugsnuff', path: '/pugsnuff' }] : []),
+    ...(user?.emailVerified ? [{ id: 5, name: 'Dashboard', path: '/dashboard' }] : []),
   ];
   return (
     <Container>

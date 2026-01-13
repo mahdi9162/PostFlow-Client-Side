@@ -1,0 +1,193 @@
+import React from 'react';
+import { NavLink, Outlet } from 'react-router';
+import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
+
+const DashboardLayout = () => {
+  const navClass = ({ isActive }) =>
+    [
+      'rounded-xl flex items-center gap-3 px-3 py-2.5 transition',
+      'hover:bg-primary/6',
+      isActive
+        ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_8px_18px_rgba(47,107,255,0.14)]'
+        : 'text-base-content/80 border border-transparent',
+    ].join(' ');
+
+  return (
+    <div className="drawer lg:drawer-open min-h-screen bg-linear-to-br from-primary/6 via-base-100 to-secondary/6">
+      <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
+
+      {/* ================== CONTENT ================== */}
+      <div className="drawer-content flex flex-col">
+        {/* Topbar */}
+        <header className="sticky top-0 z-30 bg-base-100/80 backdrop-blur border-b border-primary/10">
+          <div className="navbar px-3 md:px-6">
+            <div className="navbar-start gap-2">
+              {/* toggle button (mobile) */}
+              <label htmlFor="my-drawer-4" className="btn btn-ghost btn-square rounded-xl lg:hidden hover:bg-primary/8">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-5"
+                >
+                  <path d="M4 6h16" />
+                  <path d="M4 12h10" />
+                  <path d="M4 18h16" />
+                </svg>
+              </label>
+
+              {/* Title */}
+              <div className="flex flex-col leading-tight">
+                <h1 className="text-base md:text-lg font-extrabold text-secondary">Dashboard</h1>
+                <p className="text-xs md:text-sm text-base-content/60">PostFlow workspace</p>
+              </div>
+            </div>
+
+            <div className="navbar-center hidden md:flex">
+              <div className="px-4 py-2 rounded-full bg-primary/10 border border-primary/15 text-sm text-secondary/70">
+                Internal tool — team access
+              </div>
+            </div>
+
+            <div className="navbar-end gap-2">
+              <button className="btn btn-ghost btn-circle rounded-xl hover:bg-primary/8">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-5"
+                >
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              </button>
+
+              <div className="avatar">
+                <div className="w-9 rounded-full ring-2 ring-primary/25">
+                  <img alt="User" src="https://i.pravatar.cc/80?img=12" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page body */}
+        <main className="flex-1 px-3 md:px-6 py-4 md:py-6">
+          <div className="max-w-7xl mx-auto">
+            {/* content wrapper (remove “pure white” feel) */}
+            <div className="rounded-3xl border border-primary/10 bg-base-100/75 backdrop-blur shadow-xl shadow-primary/10 p-3 md:p-5">
+              <Outlet />
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* ================== SIDEBAR ================== */}
+      <div className="drawer-side z-40">
+        <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
+
+        {/* ✅ Mobile: solid (no glass). ✅ Desktop: keep soft gradient + blur */}
+        <aside className="w-72 bg-base-100 lg:bg-linear-to-b lg:from-secondary/6 lg:via-primary/6 lg:to-base-100/80 border-r border-primary/12 min-h-full flex flex-col lg:backdrop-blur">
+          {/* Sidebar header */}
+          <div className="px-4 py-4 border-b border-primary/10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_10px_22px_rgba(47,107,255,0.14)]">
+                <span className="text-primary font-black">P</span>
+              </div>
+              <div className="leading-tight">
+                <p className="font-extrabold text-secondary">PostFlow</p>
+                <p className="text-xs text-base-content/60">Planner dashboard</p>
+              </div>
+            </div>
+
+            {/* close (mobile) */}
+            <label
+              htmlFor="my-drawer-4"
+              className="btn btn-ghost btn-square rounded-xl lg:hidden hover:bg-primary/8"
+              aria-label="Close sidebar"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-5"
+              >
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </label>
+          </div>
+
+          {/* Menu */}
+          <div className="px-3 py-3">
+            <ul className="menu w-full gap-1">
+              <li>
+                <NavLink to="/dashboard" className={navClass} end>
+                  <IoHomeOutline className="text-lg" />
+                  <span className="font-semibold">Homepage</span>
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink to="/dashboard/create-post" className={navClass}>
+                  <IoCreateOutline className="text-lg" />
+                  <span className="font-semibold">Create Post</span>
+                </NavLink>
+              </li>
+            </ul>
+          </div>
+
+          {/* Footer card */}
+          <div className="mt-auto p-3">
+            {/* ✅ Mobile: solid (no glass). ✅ Desktop: slight translucency is ok */}
+            <div className="rounded-2xl border border-primary/12 bg-base-100 lg:bg-base-100/80 p-3 lg:backdrop-blur">
+              <div className="flex items-center gap-3">
+                <div className="avatar">
+                  <div className="w-9 rounded-full ring-2 ring-primary/25">
+                    <img alt="User" src="https://i.pravatar.cc/80?img=12" />
+                  </div>
+                </div>
+
+                <div className="flex-1 leading-tight">
+                  <p className="text-sm font-bold text-secondary">Team member</p>
+                  <p className="text-xs text-base-content/60">Helper / Admin</p>
+                </div>
+
+                <button className="btn btn-ghost btn-square rounded-xl hover:bg-primary/8">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-5"
+                  >
+                    <path d="M16 17l5-5-5-5" />
+                    <path d="M21 12H9" />
+                    <path d="M9 21H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardLayout;
