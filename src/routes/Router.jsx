@@ -1,10 +1,12 @@
 import React from 'react';
 import { createBrowserRouter } from 'react-router';
 import MainLayout from '../layouts/MainLayout/MainLayout';
-import Home from '../pages/public/Home';
-import Snortpugs from '../pages/public/Snortpugs';
-import Pugsnortz from '../pages/public/Pugsnortz';
-import Pugsnuff from '../pages/public/Pugsnuff';
+import Home from '../pages/public/home/Home';
+import Snortpugs from '../pages/public/snortpugs/Snortpugs';
+import Pugsnortz from '../pages/public/pugsnortz/Pugsnortz';
+import Pugsnuff from '../pages/public/pugsnuff/Pugsnuff';
+import Signup from '../components/auth/Signup';
+import Login from '../components/auth/Login';
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +28,14 @@ export const router = createBrowserRouter([
       {
         path: 'pugsnuff',
         Component: Pugsnuff,
+      },
+      {
+        path: 'signup',
+        Component: Signup,
+      },
+      {
+        path: 'login',
+        Component: Login,
       },
     ],
   },

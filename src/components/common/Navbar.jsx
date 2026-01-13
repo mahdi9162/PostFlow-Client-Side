@@ -3,6 +3,8 @@ import Container from '../container/Container';
 import Logo from './Logo';
 import { Link, NavLink } from 'react-router';
 import NavbarProfileDropdown from './NavbarProfileDropdown';
+import SignupButton from '../Buttons/authButtons/SignupButton';
+import LoginButton from '../Buttons/authButtons/LoginButton';
 
 const Navbar = () => {
   const links = [
@@ -45,7 +47,9 @@ const Navbar = () => {
             ))}
           </ul>
         </div>
-        <div className="navbar-end">
+        <div className="navbar-end flex gap-4">
+          <LoginButton />
+          <SignupButton />
           <NavbarProfileDropdown></NavbarProfileDropdown>
         </div>
       </div>
