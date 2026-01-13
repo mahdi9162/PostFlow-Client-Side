@@ -1,5 +1,6 @@
 import React from 'react';
 import Container from '../container/Container';
+import { Link } from 'react-router';
 
 const Signup = () => {
   return (
@@ -80,7 +81,9 @@ const Signup = () => {
                       defaultValue=""
                       className="select select-bordered w-full bg-base-200 focus:bg-base-100 rounded-xl border-base-200 "
                     >
-                      <option value="" disabled>Enter your role</option>
+                      <option value="" disabled>
+                        Enter your role
+                      </option>
                       <option>Creator</option>
                       <option>Helper</option>
                       <option>Admin</option>
@@ -139,10 +142,10 @@ const Signup = () => {
                 </button>
 
                 <p className="text-center text-sm font-medium mt-4 text-base-content/60">
-                  Already have an account?{' '}
-                  <button type="button" className="text-primary font-bold hover:underline">
+                  Already have an account?
+                  <Link to="/login" type="button" className="text-primary font-bold hover:underline">
                     Sign In
-                  </button>
+                  </Link>
                 </p>
               </form>
             </div>
