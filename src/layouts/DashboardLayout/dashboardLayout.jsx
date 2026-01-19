@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
 
 const DashboardLayout = () => {
@@ -102,10 +102,10 @@ const DashboardLayout = () => {
               <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_10px_22px_rgba(47,107,255,0.14)]">
                 <span className="text-primary font-black">P</span>
               </div>
-              <div className="leading-tight">
+              <Link to="/" className="leading-tight">
                 <p className="font-extrabold text-secondary">PostFlow</p>
                 <p className="text-xs text-base-content/60">Planner dashboard</p>
-              </div>
+              </Link>
             </div>
 
             {/* close (mobile) */}
