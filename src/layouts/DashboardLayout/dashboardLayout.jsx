@@ -94,7 +94,7 @@ const DashboardLayout = () => {
       <div className="drawer-side z-40">
         <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
 
-        {/* ✅ Mobile: solid (no glass). ✅ Desktop: keep soft gradient + blur */}
+        {/* Mobile */}
         <aside className="w-72 bg-base-100 lg:bg-linear-to-b lg:from-secondary/6 lg:via-primary/6 lg:to-base-100/80 border-r border-primary/12 min-h-full flex flex-col lg:backdrop-blur">
           {/* Sidebar header */}
           <div className="px-4 py-4 border-b border-primary/10 flex items-center justify-between">

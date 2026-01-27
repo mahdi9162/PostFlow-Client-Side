@@ -4,8 +4,10 @@ import { Link } from 'react-router';
 import { capitalizeFirstLetter } from '../../services/capitalizeFirstLetter';
 import { formatDate } from '../../services/formatDate';
 import CopyButton from '../Buttons/copyButton/CopyButton';
+import axiosInstance from '../../services/axiosInstance';
+import toast from 'react-hot-toast';
 
-const PostCard = ({ posts, account }) => {
+const PostCard = ({ posts, account, refetch }) => {
   const [selectedDay, setSelectedDay] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('pending');
   const days = ['all', 'saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -15,6 +17,16 @@ const PostCard = ({ posts, account }) => {
     const statusOk = selectedStatus === 'all' || post.status === selectedStatus;
     return dayOk && statusOk;
   });
+
+  const handleMarkAsPostedButton = async (id) => {
+    try {
+      await axiosInstance.patch(`/api/posts/${id}/posted`);
+      refetch();
+      toast.success('Marked as posted - successfully');
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <Container>
@@ -91,7 +103,12 @@ const PostCard = ({ posts, account }) => {
                 {/* Bottom actions */}
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <CopyButton post={post} />
-                  <button className="btn btn-ghost flex-1 rounded-full border border-base-300">Mark as Posted</button>
+                  <button
+                    onClick={() => handleMarkAsPostedButton(post._id)}
+                    className="btn btn-ghost flex-1 rounded-full border border-base-300"
+                  >
+                    Mark as Posted
+                  </button>
 
                   <div className="ml-auto flex items-center gap-2">
                     <button className="btn btn-circle btn-ghost border border-base-300" aria-label="Edit" title="Edit">

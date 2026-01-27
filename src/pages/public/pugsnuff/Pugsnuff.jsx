@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '../../../services/axiosInstance';
 
 const Pugsnuff = () => {
-  const { data: pugsnuffPosts } = useQuery({
+  const { data: pugsnuffPosts, refetch } = useQuery({
     queryKey: ['posts'],
     queryFn: async () => {
       const res = await axiosInstance.get('/api/posts');
@@ -20,7 +20,7 @@ const Pugsnuff = () => {
   return (
     <Container>
       <div className="my-14">
-        <PostCard posts={onlyPugsnuff} account={'pugsnuff'}></PostCard>
+        <PostCard posts={onlyPugsnuff} account={'pugsnuff'} refetch={refetch}></PostCard>
       </div>
     </Container>
   );
