@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   reload,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -45,6 +46,12 @@ const AuthProvider = ({ children }) => {
     return updateProfile(auth.currentUser, profile);
   };
 
+  // Reset Email
+  const resetPassword = (email) => {
+    setLoading(true);
+    return sendPasswordResetEmail(auth, email);
+  };
+
   // observer
   useEffect(() => {
     const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -71,6 +78,8 @@ const AuthProvider = ({ children }) => {
     userSignOut,
     updateUserProfile,
     refreshUser,
+    resetPassword,
+    setLoading,
   };
   return <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>;
 };

@@ -12,6 +12,7 @@ import CheckEmail from '../pages/public/checkEmail/CheckEmail';
 import DashboardLayout from '../layouts/DashboardLayout/dashboardLayout';
 import DashboardHome from '../pages/dashboard/dashboardHome/DashboardHome';
 import CreatePost from '../pages/dashboard/posts/CreatePost';
+import ForgotPassword from '../pages/public/forgotPass/ForgotPassword';
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +58,10 @@ export const router = createBrowserRouter([
       {
         path: 'check-email',
         Component: CheckEmail,
+      },
+      {
+        path: 'forgot-password',
+        Component: ForgotPassword,
       },
     ],
   },

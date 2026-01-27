@@ -134,9 +134,9 @@ const Login = () => {
                 </div>
 
                 <div>
-                  <button type="button" className="text-sm font-semibold text-primary hover:underline cursor-pointer">
+                  <Link to="/forgot-password" type="button" className="text-sm font-semibold text-primary hover:underline cursor-pointer">
                     Forgot password?
-                  </button>
+                  </Link>
                 </div>
 
                 <button className="btn btn-primary w-full h-14 text-white text-lg font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-primary/30 transition-all border-none bg-linear-to-b from-primary to-primary/80">
