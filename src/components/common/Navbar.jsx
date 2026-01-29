@@ -6,15 +6,38 @@ import NavbarProfileDropdown from './NavbarProfileDropdown';
 import SignupButton from '../Buttons/authButtons/SignupButton';
 import LoginButton from '../Buttons/authButtons/LoginButton';
 import useAuth from '../../hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 
 const Navbar = () => {
   const { user } = useAuth();
+  const axiosSecure = useAxiosSecure();
+
+  // fetch
+  const { data: me } = useQuery({
+    queryKey: ['me', user?.email],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/api/users/me');
+      return res.data;
+    },
+    enabled: !!user && !!user.emailVerified,
+    staleTime: 10_000,
+  });
+
+  const isApproved = me?.status === 'approved';
+
   const links = [
     { id: 1, name: 'Home', path: '/' },
-    ...(user?.emailVerified ? [{ id: 2, name: 'Snortpugs', path: '/snortpugs' }] : []),
-    ...(user?.emailVerified ? [{ id: 3, name: 'Pugsnortz', path: '/pugsnortz' }] : []),
-    ...(user?.emailVerified ? [{ id: 4, name: 'Pugsnuff', path: '/pugsnuff' }] : []),
-    ...(user?.emailVerified ? [{ id: 5, name: 'Dashboard', path: '/dashboard' }] : []),
+    ...(isApproved
+      ? [
+          { id: 2, name: 'Snortpugs', path: '/snortpugs' },
+          { id: 3, name: 'Pugsnortz', path: '/pugsnortz' },
+          { id: 4, name: 'Pugsnuff', path: '/pugsnuff' },
+          { id: 5, name: 'Dashboard', path: '/dashboard' },
+        ]
+      : []),
+
+    ...(user && me?.status === 'pending' ? [{ id: 6, name: 'Your Approval', path: '/pending-approval' }] : []),
   ];
   return (
     <Container>

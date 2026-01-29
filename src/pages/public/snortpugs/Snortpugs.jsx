@@ -2,25 +2,22 @@ import React from 'react';
 import PostCard from '../../../components/postCard/postCard';
 import Container from '../../../components/container/Container';
 import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../../../services/axiosInstance';
+import useAxiosSecure from '../../../hooks/useAxiosSecure';
 
 const Snortpugs = () => {
+  const axiosSecure = useAxiosSecure();
   const { data: snortpugsPosts, refetch } = useQuery({
-    queryKey: ['posts'],
+    queryKey: ['posts', 'snortpugs'],
     queryFn: async () => {
-      const res = await axiosInstance.get('/api/posts');
+      const res = await axiosSecure.get('/api/posts?account=snortpugs');
       return res.data;
     },
-  });
-
-  const onlySnortpugs = snortpugsPosts?.filter((posts) => {
-    return posts.account === 'snortpugs';
   });
 
   return (
     <Container>
       <div className="my-14">
-        <PostCard posts={onlySnortpugs} account={'snortpugs'} refetch={refetch}></PostCard>
+        <PostCard posts={snortpugsPosts} account={'snortpugs'} refetch={refetch}></PostCard>
       </div>
     </Container>
   );

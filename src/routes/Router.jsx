@@ -13,6 +13,8 @@ import DashboardLayout from '../layouts/DashboardLayout/dashboardLayout';
 import DashboardHome from '../pages/dashboard/dashboardHome/DashboardHome';
 import CreatePost from '../pages/dashboard/posts/CreatePost';
 import ForgotPassword from '../pages/public/forgotPass/ForgotPassword';
+import PendingApproval from '../pages/public/pendingApproval/pendingApproval';
+import AuthOnlyRoute from './AuthOnlyRoute';
 
 export const router = createBrowserRouter([
   {
@@ -58,6 +60,14 @@ export const router = createBrowserRouter([
       {
         path: 'check-email',
         Component: CheckEmail,
+      },
+      {
+        path: '/pending-approval',
+        element: (
+          <AuthOnlyRoute>
+            <PendingApproval />
+          </AuthOnlyRoute>
+        ),
       },
       {
         path: 'forgot-password',

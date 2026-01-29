@@ -10,6 +10,7 @@ const Signup = () => {
   const { signUpWithEmailPass, updateUserProfile, userVerification } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -17,12 +18,12 @@ const Signup = () => {
     formState: { errors },
   } = useForm();
 
-  //   regex
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const passValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}[\]:;"'<>,.?/\\|]).{8,15}$/;
+  const passValidation =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}[\]:;"'<>,.?/\\|]).{8,15}$/;
 
   const handleUserSignup = async (data) => {
-    const { email, password, fullName } = data;
+    const { email, password, fullName, role } = data;
     setLoading(true);
 
     try {
@@ -30,18 +31,18 @@ const Signup = () => {
       await updateUserProfile({ displayName: fullName });
       await userVerification();
 
+      localStorage.setItem('requestedRole', role.toLowerCase());
+
+      toast.success('Verification email sent. Please check your inbox.');
       navigate('/check-email');
-      toast.success('Your profile is created!');
     } catch (error) {
-      console.log(error);
+      toast.error(error?.message || 'Signup failed');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
   return (
     <Container>
@@ -58,7 +59,12 @@ const Signup = () => {
                 "
               >
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
 
@@ -86,7 +92,7 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Right Side: Form Card */}
+          {/* Right Side */}
           <div className="lg:col-span-7 order-1 lg:order-2">
             <div
               className="
@@ -108,14 +114,13 @@ const Signup = () => {
                     </label>
                     <input
                       type="text"
-                      name="fullName"
-                      {...register('fullName', {
-                        required: 'Full name is required',
-                      })}
+                      {...register('fullName', { required: 'Full name is required' })}
                       placeholder="Enter your name"
                       className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                     />
-                    {errors.fullName && <p className="text-left mt-1 text-xs text-red-400/80">{errors.fullName.message}</p>}
+                    {errors.fullName && (
+                      <p className="text-left mt-1 text-xs text-red-400/80">{errors.fullName.message}</p>
+                    )}
                   </div>
 
                   <div className="form-control w-full">
@@ -123,18 +128,15 @@ const Signup = () => {
                       <span className="label-text font-semibold">Team Role</span>
                     </label>
                     <select
-                      name="role"
-                      {...register('role', {
-                        required: 'Role is required',
-                      })}
+                      {...register('role', { required: 'Role is required' })}
                       defaultValue=""
-                      className="select select-bordered w-full bg-base-200 focus:bg-base-100 rounded-xl border-base-200 "
+                      className="select select-bordered w-full bg-base-200 focus:bg-base-100 rounded-xl border-base-200 cursor-pointer"
                     >
                       <option value="" disabled hidden>
                         Enter your role
                       </option>
                       <option>Creator</option>
-                      <option>Helper</option>
+                      <option>Publisher</option>
                       <option>Admin</option>
                     </select>
                     {errors.role && <p className="text-left mt-1 text-xs text-red-400/80">{errors.role.message}</p>}
@@ -146,9 +148,11 @@ const Signup = () => {
                     <span className="label-text font-semibold">Email Address</span>
                   </label>
                   <input
-                    name="email"
                     type="email"
-                    {...register('email', { required: true, pattern: { value: emailRegex, message: 'Enter a valid email address' } })}
+                    {...register('email', {
+                      required: 'Email is required', // ✅ FIX: now message always exists
+                      pattern: { value: emailRegex, message: 'Enter a valid email address' },
+                    })}
                     placeholder="name@company.com"
                     className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                   />
@@ -162,9 +166,8 @@ const Signup = () => {
                     </label>
                     <input
                       type="password"
-                      name="password"
                       {...register('password', {
-                        required: true,
+                        required: 'Password is required',
                         pattern: {
                           value: passValidation,
                           message: 'Use 8–15 chars with uppercase, lowercase, number & special symbol.',
@@ -173,7 +176,9 @@ const Signup = () => {
                       placeholder="••••••••"
                       className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                     />
-                    {errors.password && <p className="text-left mt-1 text-xs text-red-400/80">{errors.password.message}</p>}
+                    {errors.password && (
+                      <p className="text-left mt-1 text-xs text-red-400/80">{errors.password.message}</p>
+                    )}
                   </div>
 
                   <div className="form-control w-full">
@@ -182,7 +187,6 @@ const Signup = () => {
                     </label>
                     <input
                       type="password"
-                      name="confirmPassword"
                       {...register('confirmPassword', {
                         required: 'Please confirm your password',
                         validate: (value) => value === watch('password') || 'Passwords do not match',
@@ -191,12 +195,13 @@ const Signup = () => {
                       className="input input-bordered w-full bg-base-200/40 focus:bg-base-100 transition-all rounded-xl border-base-200"
                     />
                     {errors.confirmPassword && (
-                      <p className="text-left lg:ml-18 mt-1 text-xs text-red-400/80">{errors.confirmPassword.message}</p>
+                      <p className="text-left mt-1 text-xs text-red-400/80">{errors.confirmPassword.message}</p>
                     )}
                   </div>
                 </div>
 
                 <button
+                  type="submit"
                   className="
                     btn btn-primary w-full h-14 text-white text-lg font-bold rounded-2xl
                     shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all border-none
@@ -207,8 +212,8 @@ const Signup = () => {
                 </button>
 
                 <p className="text-center text-sm font-medium mt-4 text-base-content/60">
-                  Already have an account?
-                  <Link to="/login" type="button" className="text-primary font-bold hover:underline">
+                  Already have an account?{' '}
+                  <Link to="/login" className="text-primary font-bold hover:underline">
                     Sign In
                   </Link>
                 </p>
