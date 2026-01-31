@@ -1,11 +1,12 @@
 import React from 'react';
+import DashHomeAdmin from '../admin/dashHomeAdmin';
 
 const DashboardHome = () => {
-    return (
-        <div>
-            dashboard
-        </div>
-    );
+  return (
+    <>
+      <DashHomeAdmin />
+    </>
+  );
 };
 
 export default DashboardHome;

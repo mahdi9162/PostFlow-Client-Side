@@ -1,8 +1,27 @@
 import React from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
+import { FiUserCheck } from 'react-icons/fi';
+import { useQuery } from '@tanstack/react-query';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+import Loading from '../../components/Loading/Loading';
 
 const DashboardLayout = () => {
+  const axiosSecure = useAxiosSecure();
+
+  const { data: me, isLoading } = useQuery({
+    queryKey: ['email'],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/api/users/me');
+      return res.data;
+    },
+  });
+
+  if (isLoading) return <Loading />;
+
+  const isAdmin = me?.role === 'admin';
+  const isPublisher = me?.role === 'publisher';
+
   const navClass = ({ isActive }) =>
     [
       'rounded-xl flex items-center gap-3 px-3 py-2.5 transition',
@@ -81,12 +100,7 @@ const DashboardLayout = () => {
 
         {/* Page body */}
         <main className="flex-1 px-3 md:px-6 py-4 md:py-6">
-          <div className="max-w-7xl mx-auto">
-            {/* content wrapper (remove “pure white” feel) */}
-            <div className="rounded-3xl border border-primary/10 bg-base-100/75 backdrop-blur shadow-xl shadow-primary/10 p-3 md:p-5">
-              <Outlet />
-            </div>
-          </div>
+          <Outlet />
         </main>
       </div>
 
@@ -140,18 +154,29 @@ const DashboardLayout = () => {
                 </NavLink>
               </li>
 
-              <li>
-                <NavLink to="/dashboard/create-post" className={navClass}>
-                  <IoCreateOutline className="text-lg" />
-                  <span className="font-semibold">Create Post</span>
-                </NavLink>
-              </li>
+              {(isAdmin || isPublisher) && (
+                <li>
+                  <NavLink to="/dashboard/create-post" className={navClass}>
+                    <IoCreateOutline className="text-lg" />
+                    <span className="font-semibold">Create Post</span>
+                  </NavLink>
+                </li>
+              )}
+
+              {/* Role */}
+              {isAdmin && (
+                <li>
+                  <NavLink to="/dashboard/AccessReq" className={navClass}>
+                    <FiUserCheck className="text-lg" />
+                    <span className="font-semibold">Access Requests </span>
+                  </NavLink>
+                </li>
+              )}
             </ul>
           </div>
 
           {/* Footer card */}
           <div className="mt-auto p-3">
-            {/* ✅ Mobile: solid (no glass). ✅ Desktop: slight translucency is ok */}
             <div className="rounded-2xl border border-primary/12 bg-base-100 lg:bg-base-100/80 p-3 lg:backdrop-blur">
               <div className="flex items-center gap-3">
                 <div className="avatar">

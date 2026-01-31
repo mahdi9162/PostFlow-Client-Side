@@ -150,7 +150,7 @@ const Signup = () => {
                   <input
                     type="email"
                     {...register('email', {
-                      required: 'Email is required', // ✅ FIX: now message always exists
+                      required: 'Email is required',
                       pattern: { value: emailRegex, message: 'Enter a valid email address' },
                     })}
                     placeholder="name@company.com"

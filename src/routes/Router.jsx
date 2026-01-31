@@ -15,6 +15,7 @@ import CreatePost from '../pages/dashboard/posts/CreatePost';
 import ForgotPassword from '../pages/public/forgotPass/ForgotPassword';
 import PendingApproval from '../pages/public/pendingApproval/pendingApproval';
 import AuthOnlyRoute from './AuthOnlyRoute';
+import AccessReq from '../pages/dashboard/admin/AccessReq';
 
 export const router = createBrowserRouter([
   {
@@ -90,6 +91,14 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard/create-post',
         Component: CreatePost,
+      },
+      {
+        path: '/dashboard/AccessReq',
+        element: (
+          <PrivateRoute>
+            <AccessReq />
+          </PrivateRoute>
+        ),
       },
     ],
   },
