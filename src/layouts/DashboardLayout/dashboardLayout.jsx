@@ -2,25 +2,11 @@ import React from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
 import { FiUserCheck } from 'react-icons/fi';
-import { useQuery } from '@tanstack/react-query';
-import useAxiosSecure from '../../hooks/useAxiosSecure';
 import Loading from '../../components/Loading/Loading';
+import { useMe } from '../../hooks/useMe';
 
 const DashboardLayout = () => {
-  const axiosSecure = useAxiosSecure();
-
-  const { data: me, isLoading } = useQuery({
-    queryKey: ['email'],
-    queryFn: async () => {
-      const res = await axiosSecure.get('/api/users/me');
-      return res.data;
-    },
-  });
-
-  if (isLoading) return <Loading />;
-
-  const isAdmin = me?.role === 'admin';
-  const isPublisher = me?.role === 'publisher';
+  const { isAdmin, isPublisher } = useMe();
 
   const navClass = ({ isActive }) =>
     [

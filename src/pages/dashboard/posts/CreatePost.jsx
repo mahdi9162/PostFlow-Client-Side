@@ -187,6 +187,23 @@ const CreatePost = () => {
                 {errors.source && <p className="text-left mt-1 text-xs text-red-400/80">{errors.source.message}</p>}
               </div>
 
+              {/* Drive link */}
+              <div className="mt-4 form-control">
+                <label className="label">
+                  <span className="label-text font-semibold mb-1">Drive video link</span>
+                </label>
+
+                <input
+                  type="url"
+                  className="input w-full rounded-2xl bg-base-100/80 border border-base-300 hover:border-base-400 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 transition"
+                  placeholder="https://drive.google.com/..."
+                  {...register('driveLink', {
+                    required: 'DriveLink is required',
+                  })}
+                />
+                {errors.driveLink && <p className="text-left mt-1 text-xs text-red-400/80">{errors.driveLink.message}</p>}
+              </div>
+
               {/* Hashtags */}
               <div className="mt-4 form-control">
                 <label className="label">

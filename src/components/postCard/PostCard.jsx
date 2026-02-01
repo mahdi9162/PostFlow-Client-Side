@@ -103,6 +103,19 @@ const PostCard = ({ posts, account, refetch }) => {
                 {/* Bottom actions */}
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <CopyButton post={post} />
+
+                  {/* Drive link button */}
+                  <a
+                    href={post?.driveLink || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={`btn bg-primary/30 text-black flex-1 rounded-full border border-base-300 cursor-pointer ${
+                      !post?.driveLink ? 'btn-disabled bg-white text-black/20' : ''
+                    }`}
+                  >
+                    Open Drive
+                  </a>
+
                   <button
                     onClick={() => handleMarkAsPostedButton(post._id)}
                     className="btn btn-ghost flex-1 rounded-full border border-base-300"
