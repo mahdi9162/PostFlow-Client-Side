@@ -68,10 +68,12 @@ const PostCard = ({ posts, account, refetch }) => {
               </select>
             </div>
 
-            <Link to="/dashboard/create-post" className="btn btn-primary rounded-full px-6">
-              <span className="text-lg leading-none">＋</span>
-              New Post
-            </Link>
+            {(isAdmin || isCreator) && (
+              <Link to="/dashboard/create-post" className="btn btn-primary rounded-full px-6">
+                <span className="text-lg leading-none">＋</span>
+                New Post
+              </Link>
+            )}
           </div>
 
           {/* Card */}
