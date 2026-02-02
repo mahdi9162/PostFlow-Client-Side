@@ -22,11 +22,13 @@ const PostCard = ({ posts, account, refetch }) => {
     return dayOk && statusOk;
   });
 
-  const handleMarkAsPostedButton = async (id) => {
+  const handleMarkAsButton = async (id, status) => {
     try {
-      await axiosInstance.patch(`/api/posts/${id}/posted`);
+      await axiosInstance.patch(`/api/posts/${id}/status`, {
+        status,
+      });
       refetch();
-      toast.success('Marked as posted - successfully');
+      toast.success(`Marked as ${status} - successfully`);
     } catch (error) {
       console.log(error);
     }
@@ -121,12 +123,21 @@ const PostCard = ({ posts, account, refetch }) => {
                     Open Drive
                   </a>
 
-                  <button
-                    onClick={() => handleMarkAsPostedButton(post._id)}
-                    className="btn btn-ghost flex-1 py-1 md:py-0 rounded-full border border-base-300"
-                  >
-                    Mark as Posted
-                  </button>
+                  {post.status === 'pending' ? (
+                    <button
+                      onClick={() => handleMarkAsButton(post._id, 'posted')}
+                      className="btn btn-ghost flex-1 py-1 md:py-0 rounded-full border border-base-300"
+                    >
+                      Mark as Posted
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleMarkAsButton(post._id, 'pending')}
+                      className="btn btn-ghost flex-1 py-1 md:py-0 rounded-full border border-base-300"
+                    >
+                      Mark as Pending
+                    </button>
+                  )}
 
                   <div className="ml-auto flex items-center gap-2">
                     <button
