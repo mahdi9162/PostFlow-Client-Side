@@ -6,7 +6,7 @@ import Loading from '../../components/Loading/Loading';
 import { useMe } from '../../hooks/useMe';
 
 const DashboardLayout = () => {
-  const { isAdmin, isPublisher } = useMe();
+  const { isAdmin, isCreator } = useMe();
 
   const navClass = ({ isActive }) =>
     [
@@ -140,7 +140,7 @@ const DashboardLayout = () => {
                 </NavLink>
               </li>
 
-              {(isAdmin || isPublisher) && (
+              {(isAdmin || isCreator) && (
                 <li>
                   <NavLink to="/dashboard/create-post" className={navClass}>
                     <IoCreateOutline className="text-lg" />

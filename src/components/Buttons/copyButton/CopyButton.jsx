@@ -15,7 +15,7 @@ const CopyButton = ({ post }) => {
   };
 
   return (
-    <button onClick={handleCopyButton} className="btn btn-primary flex-1 rounded-full">
+    <button onClick={handleCopyButton} className="btn btn-primary flex-1 py-1 md:py-0 rounded-full">
       {copied ? 'Copied ✅' : 'Copy'}
     </button>
   );

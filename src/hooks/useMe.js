@@ -13,7 +13,7 @@ export const useMe = () => {
   });
 
   const isAdmin = me?.status === 'approved' && me?.role === 'admin';
-  const isPublisher = me?.status === 'approved' && me?.role === 'publisher';
+  const isCreator = me?.status === 'approved' && me?.role === 'creator';
 
-  return { isAdmin, isPublisher };
+  return { isAdmin, isCreator };
 };

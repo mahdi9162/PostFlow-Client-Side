@@ -6,15 +6,19 @@ import { formatDate } from '../../services/formatDate';
 import CopyButton from '../Buttons/copyButton/CopyButton';
 import axiosInstance from '../../services/axiosInstance';
 import toast from 'react-hot-toast';
+import { useMe } from '../../hooks/useMe';
+import { getTodayBd } from '../../services/getTodayBd';
 
 const PostCard = ({ posts, account, refetch }) => {
-  const [selectedDay, setSelectedDay] = useState('all');
+  const [selectedDay, setSelectedDay] = useState(() => getTodayBd());
   const [selectedStatus, setSelectedStatus] = useState('pending');
-  const days = ['all', 'saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
+  const { isAdmin, isCreator } = useMe();
 
   const filteredPosts = posts?.filter((post) => {
-    const dayOk = selectedDay === 'all' || post.day === selectedDay;
-    const statusOk = selectedStatus === 'all' || post.status === selectedStatus;
+    const dayOk = (post.day || '').toLowerCase() === selectedDay;
+    const statusOk = (post.status || '').toLowerCase() === selectedStatus;
     return dayOk && statusOk;
   });
 
@@ -39,6 +43,7 @@ const PostCard = ({ posts, account, refetch }) => {
 
               <div className="flex items-center gap-2">
                 <select
+                  value={selectedDay}
                   onChange={(e) => setSelectedDay(e.target.value)}
                   className="select select-sm select-bordered rounded-full cursor-pointer"
                 >
@@ -109,7 +114,7 @@ const PostCard = ({ posts, account, refetch }) => {
                     href={post?.driveLink || '#'}
                     target="_blank"
                     rel="noreferrer"
-                    className={`btn bg-primary/30 text-black flex-1 rounded-full border border-base-300 cursor-pointer ${
+                    className={`btn bg-primary/30 text-black py-1 md:py-0 flex-1 rounded-full border border-base-300 cursor-pointer ${
                       !post?.driveLink ? 'btn-disabled bg-white text-black/20' : ''
                     }`}
                   >
@@ -118,16 +123,24 @@ const PostCard = ({ posts, account, refetch }) => {
 
                   <button
                     onClick={() => handleMarkAsPostedButton(post._id)}
-                    className="btn btn-ghost flex-1 rounded-full border border-base-300"
+                    className="btn btn-ghost flex-1 py-1 md:py-0 rounded-full border border-base-300"
                   >
                     Mark as Posted
                   </button>
 
                   <div className="ml-auto flex items-center gap-2">
-                    <button className="btn btn-circle btn-ghost border border-base-300" aria-label="Edit" title="Edit">
+                    <button
+                      className={isAdmin || isCreator ? 'btn btn-circle btn-ghost border border-base-300' : 'hidden'}
+                      aria-label="Edit"
+                      title="Edit"
+                    >
                       ✎
                     </button>
-                    <button className="btn btn-circle btn-ghost border border-error/40 text-error" aria-label="Delete" title="Delete">
+                    <button
+                      className={isAdmin ? `btn btn-circle btn-ghost border border-error/40 text-error` : `hidden`}
+                      aria-label="Delete"
+                      title="Delete"
+                    >
                       🗑
                     </button>
                   </div>
