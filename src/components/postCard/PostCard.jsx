@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Container from '../container/Container';
 import { Link } from 'react-router';
 import { capitalizeFirstLetter } from '../../services/capitalizeFirstLetter';
@@ -8,8 +8,11 @@ import axiosInstance from '../../services/axiosInstance';
 import toast from 'react-hot-toast';
 import { useMe } from '../../hooks/useMe';
 import { getTodayBd } from '../../services/getTodayBd';
+import PostEditModal from './PostEditModal';
 
 const PostCard = ({ posts, account, refetch }) => {
+  const postEditRef = useRef(null);
+  const [editPost, setEditPost] = useState(null);
   const [selectedDay, setSelectedDay] = useState(() => getTodayBd());
   const [selectedStatus, setSelectedStatus] = useState('pending');
   const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
@@ -32,6 +35,21 @@ const PostCard = ({ posts, account, refetch }) => {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  useEffect(() => {
+    if (editPost && postEditRef.current) {
+      postEditRef.current.showModal();
+    }
+  }, [editPost]);
+
+  const openEditModal = (post) => {
+    setEditPost(post);
+  };
+
+  const closeEditModal = () => {
+    postEditRef.current?.close();
+    setEditPost(null);
   };
 
   return (
@@ -143,6 +161,7 @@ const PostCard = ({ posts, account, refetch }) => {
 
                   <div className="ml-auto flex items-center gap-2">
                     <button
+                      onClick={() => openEditModal(post)}
                       className={isAdmin || isCreator ? 'btn btn-circle btn-ghost border border-base-300' : 'hidden'}
                       aria-label="Edit"
                       title="Edit"
@@ -163,6 +182,8 @@ const PostCard = ({ posts, account, refetch }) => {
           </div>
         </div>
       </div>
+      {/* For post edit modal */}
+      <PostEditModal modalRef={postEditRef} post={editPost} onClose={closeEditModal} />
     </Container>
   );
 };

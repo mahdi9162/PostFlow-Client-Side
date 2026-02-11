@@ -9,13 +9,14 @@ import Signup from '../components/auth/Signup';
 import Login from '../components/auth/Login';
 import PrivateRoute from './PrivateRoute';
 import CheckEmail from '../pages/public/checkEmail/CheckEmail';
-import DashboardLayout from '../layouts/DashboardLayout/dashboardLayout';
 import DashboardHome from '../pages/dashboard/dashboardHome/DashboardHome';
 import CreatePost from '../pages/dashboard/posts/CreatePost';
 import ForgotPassword from '../pages/public/forgotPass/ForgotPassword';
 import PendingApproval from '../pages/public/pendingApproval/pendingApproval';
 import AuthOnlyRoute from './AuthOnlyRoute';
+import DashboardLayout from '../layouts/DashboardLayout/DashboardLayout';
 import AccessReq from '../pages/dashboard/admin/AccessReq';
+import AccountHashtagsManager from '../pages/dashboard/admin/AccountHashtagsManager';
 
 export const router = createBrowserRouter([
   {
@@ -99,6 +100,10 @@ export const router = createBrowserRouter([
             <AccessReq />
           </PrivateRoute>
         ),
+      },
+      {
+        path: '/dashboard/hastags-manager',
+        Component: AccountHashtagsManager,
       },
     ],
   },

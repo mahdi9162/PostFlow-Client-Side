@@ -151,12 +151,20 @@ const DashboardLayout = () => {
 
               {/* Role */}
               {isAdmin && (
-                <li>
-                  <NavLink to="/dashboard/AccessReq" className={navClass}>
-                    <FiUserCheck className="text-lg" />
-                    <span className="font-semibold">Access Requests </span>
-                  </NavLink>
-                </li>
+                <>
+                  <li>
+                    <NavLink to="/dashboard/AccessReq" className={navClass}>
+                      <FiUserCheck className="text-lg" />
+                      <span className="font-semibold">Access Requests </span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/dashboard/hastags-manager" className={navClass}>
+                      <FiUserCheck className="text-lg" />
+                      <span className="font-semibold">Account Hashtags Manager</span>
+                    </NavLink>
+                  </li>
+                </>
               )}
             </ul>
           </div>
