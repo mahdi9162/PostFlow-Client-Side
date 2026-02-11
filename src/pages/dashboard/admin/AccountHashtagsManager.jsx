@@ -3,6 +3,7 @@ import { Hash, Save, RefreshCw, Trash2, Info } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
+import AccountTagGroupsPanel from './adminComponents/AccountTagGroupsPanel';
 
 const accounts = [
   { value: 'snortpugs', label: 'Snortpugs' },
@@ -84,7 +85,7 @@ const AccountHashtagsManager = () => {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-secondary">Select Account</p>
-                      <p className="text-xs text-muted leading-relaxed">Choose which account you’re editing.</p>
+                      <p className="text-xs text-muted leading-relaxed">Choose which accounts tags you’re posting.</p>
                     </div>
                   </div>
 
@@ -197,8 +198,9 @@ const AccountHashtagsManager = () => {
           </form>
         </div>
       </section>
-      <section>
-        
+      {/* All Tags */}
+      <section className='mt-20'>
+        <AccountTagGroupsPanel />
       </section>
     </div>
   );
