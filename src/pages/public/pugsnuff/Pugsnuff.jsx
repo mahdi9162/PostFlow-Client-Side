@@ -1,26 +1,15 @@
 import React from 'react';
-import Container from '../../../components/container/Container';
 import PostCard from '../../../components/postCard/postCard';
-import { useQuery } from '@tanstack/react-query';
-import useAxiosSecure from '../../../hooks/useAxiosSecure';
+import Container from '../../../components/container/Container';
 
-const Pugsnuff = () => {
-  const axiosSecure = useAxiosSecure();
-  const { data: pugsnuffPosts, refetch } = useQuery({
-    queryKey: ['posts', 'pugsnuff'],
-    queryFn: async () => {
-      const res = await axiosSecure.get('/api/posts?account=pugsnuff');
-      return res.data;
-    },
-  });
-
+const Snortpugs = () => {
   return (
     <Container>
       <div className="my-14">
-        <PostCard posts={pugsnuffPosts} account={'pugsnuff'} refetch={refetch}></PostCard>
+        <PostCard account="pugsnuff" />
       </div>
     </Container>
   );
 };
 
-export default Pugsnuff;
+export default Snortpugs;

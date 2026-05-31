@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Container from '../container/Container';
 import { Link } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
 import { capitalizeFirstLetter } from '../../services/capitalizeFirstLetter';
 import { formatDate } from '../../services/formatDate';
 import CopyButton from '../Buttons/copyButton/CopyButton';
@@ -9,20 +10,33 @@ import toast from 'react-hot-toast';
 import { useMe } from '../../hooks/useMe';
 import { getTodayBd } from '../../services/getTodayBd';
 import PostEditModal from './PostEditModal';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 
-const PostCard = ({ posts, account, refetch }) => {
+const PostCard = ({ account }) => {
+  const axiosSecure = useAxiosSecure();
+
   const postEditRef = useRef(null);
   const [editPost, setEditPost] = useState(null);
   const [selectedDay, setSelectedDay] = useState(() => getTodayBd());
   const [selectedStatus, setSelectedStatus] = useState('pending');
+
   const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
   const { isAdmin, isCreator } = useMe();
 
-  const filteredPosts = posts?.filter((post) => {
-    const dayOk = (post.day || '').toLowerCase() === selectedDay;
-    const statusOk = (post.status || '').toLowerCase() === selectedStatus;
-    return dayOk && statusOk;
+  const { data: posts = [], refetch } = useQuery({
+    queryKey: ['posts', account, selectedDay, selectedStatus],
+    queryFn: async () => {
+      const res = await axiosSecure.get('/api/posts', {
+        params: {
+          account,
+          day: selectedDay,
+          status: selectedStatus,
+        },
+      });
+
+      return res.data;
+    },
   });
 
   const handleMarkAsButton = async (id, status) => {
@@ -56,7 +70,6 @@ const PostCard = ({ posts, account, refetch }) => {
     <Container>
       <div className="min-h-screen bg-base-200/40 py-8 rounded-4xl">
         <div className="mx-auto w-full max-w-5xl px-4">
-          {/* Top filters row */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-base-content/70">Day:</span>
@@ -94,11 +107,9 @@ const PostCard = ({ posts, account, refetch }) => {
             )}
           </div>
 
-          {/* Card */}
           <div>
-            {filteredPosts?.map((post) => (
+            {posts?.map((post) => (
               <div key={post._id} className="mt-6 rounded-2xl bg-base-100 p-6 shadow-sm ring-1 ring-base-200">
-                {/* Header row */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="badge badge-info badge-outline rounded-full">{capitalizeFirstLetter(post.day)}</span>
@@ -111,10 +122,8 @@ const PostCard = ({ posts, account, refetch }) => {
                   </div>
                 </div>
 
-                {/* Title */}
                 <h2 className="mt-3 text-lg font-semibold text-base-content max-w-md line-clamp-1">{post.caption}</h2>
 
-                {/* Caption area */}
                 <div className="mt-3 rounded-2xl bg-base-200/60 p-4 ring-1 ring-base-200">
                   <p className="whitespace-pre-line text-sm leading-6 text-base-content/80">
                     <span>{post.caption}</span>
@@ -127,11 +136,9 @@ const PostCard = ({ posts, account, refetch }) => {
                   </p>
                 </div>
 
-                {/* Bottom actions */}
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <CopyButton post={post} />
 
-                  {/* Drive link button */}
                   <a
                     href={post?.driveLink || '#'}
                     target="_blank"
@@ -168,6 +175,7 @@ const PostCard = ({ posts, account, refetch }) => {
                     >
                       ✎
                     </button>
+
                     <button
                       className={isAdmin ? `btn btn-circle btn-ghost border border-error/40 text-error` : `hidden`}
                       aria-label="Delete"
@@ -182,7 +190,7 @@ const PostCard = ({ posts, account, refetch }) => {
           </div>
         </div>
       </div>
-      {/* For post edit modal */}
+
       <PostEditModal modalRef={postEditRef} post={editPost} onClose={closeEditModal} />
     </Container>
   );
