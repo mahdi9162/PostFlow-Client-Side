@@ -261,10 +261,10 @@ const PostCard = ({ account }) => {
                   <button
                     key={status}
                     onClick={() => setSelectedStatus(status)}
-                    className={`join-item btn btn-sm rounded-full flex-1 md:flex-none border-none ${
+                    className={`join-item btn btn-sm rounded-full flex-1 md:flex-none border-none font-semibold transition-all ${
                       selectedStatus === status 
-                        ? 'bg-base-100 shadow-sm text-base-content hover:bg-base-100' 
-                        : 'bg-transparent text-base-content/60 hover:bg-base-200'
+                        ? 'bg-primary text-primary-content shadow-sm hover:bg-primary' 
+                        : 'bg-transparent text-base-content/50 hover:bg-base-200 hover:text-base-content'
                     }`}
                   >
                     {capitalizeFirstLetter(status)}
