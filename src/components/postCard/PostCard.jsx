@@ -15,6 +15,7 @@ import { formatInstagramPostText } from '../Buttons/copyButton/formatInstagramPo
 import LoadingState from '../common/LoadingState';
 import ErrorState from '../common/ErrorState';
 import StatusBadge from '../common/StatusBadge';
+import DeleteConfirmModal from '../common/DeleteConfirmModal';
 
 const PostCard = ({ account }) => {
   const axiosSecure = useAxiosSecure();
@@ -25,6 +26,11 @@ const PostCard = ({ account }) => {
   const [selectedDate, setSelectedDate] = useState(() => getTodayDateBd());
   const [selectedStatus, setSelectedStatus] = useState('pending');
   const [statusLoadingIds, setStatusLoadingIds] = useState(new Set());
+  
+  // Delete state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { isAdmin, isCreator } = useMe();
 
@@ -79,7 +85,6 @@ const PostCard = ({ account }) => {
     setStatusLoadingIds((prev) => new Set(prev).add(id));
     try {
       await axiosSecure.patch(`/api/posts/${id}/status`, { status });
-      // Invalidate queries so both list and summary update
       await queryClient.invalidateQueries({ queryKey: ['posts', account, selectedDate] });
       toast.success(`Marked as ${status} - successfully`);
     } catch {
@@ -93,14 +98,31 @@ const PostCard = ({ account }) => {
     }
   };
 
-  const handleDeleteButton = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+  const openDeleteModal = (id) => {
+    setPostToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    if (!isDeleting) {
+      setDeleteModalOpen(false);
+      setPostToDelete(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!postToDelete) return;
+    setIsDeleting(true);
     try {
-      await axiosSecure.delete(`/api/posts/${id}`);
+      await axiosSecure.delete(`/api/posts/${postToDelete}`);
       await queryClient.invalidateQueries({ queryKey: ['posts', account, selectedDate] });
       toast.success('Post deleted successfully');
+      setDeleteModalOpen(false);
+      setPostToDelete(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to delete post');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -288,22 +310,26 @@ const PostCard = ({ account }) => {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditModal(post)}
-                            className={isAdmin || isCreator ? 'btn btn-circle btn-sm btn-ghost bg-base-200/30' : 'hidden'}
-                            aria-label="Edit"
-                            title="Edit"
-                          >
-                            ✎
-                          </button>
-                          <button
-                            onClick={() => handleDeleteButton(post._id)}
-                            className={isAdmin ? 'btn btn-circle btn-sm btn-ghost bg-error/10 text-error hover:bg-error/20' : 'hidden'}
-                            aria-label="Delete"
-                            title="Delete"
-                          >
-                            🗑
-                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => openDeleteModal(post._id)}
+                              className="btn btn-sm btn-ghost bg-error/5 text-error hover:bg-error hover:text-white rounded-lg px-4 font-semibold"
+                              aria-label="Delete"
+                              title="Delete"
+                            >
+                              Delete
+                            </button>
+                          )}
+                          {(isAdmin || isCreator) && (
+                            <button
+                              onClick={() => openEditModal(post)}
+                              className="btn btn-sm btn-ghost bg-base-200/50 hover:bg-base-200 rounded-lg px-4 font-semibold"
+                              aria-label="Edit"
+                              title="Edit"
+                            >
+                              Edit
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -368,6 +394,15 @@ const PostCard = ({ account }) => {
 
       {(isAdmin || isCreator) && (
         <PostEditModal modalRef={postEditRef} post={editPost} onClose={closeEditModal} refetch={refetch} />
+      )}
+
+      {isAdmin && (
+        <DeleteConfirmModal 
+          isOpen={deleteModalOpen} 
+          onClose={closeDeleteModal} 
+          onConfirm={handleConfirmDelete} 
+          isDeleting={isDeleting} 
+        />
       )}
     </Container>
   );

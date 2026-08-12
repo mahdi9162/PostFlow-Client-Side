@@ -1,8 +1,11 @@
 import React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { Link } from 'react-router';
-import axiosInstance from '../../../services/axiosInstance';
+import { Link, Navigate } from 'react-router';
 import toast from 'react-hot-toast';
+import useAxiosSecure from '../../../hooks/useAxiosSecure';
+import { useMe } from '../../../hooks/useMe';
+import LoadingState from '../../../components/common/LoadingState';
+import ErrorState from '../../../components/common/ErrorState';
 
 const CreatePost = () => {
   const {
@@ -10,15 +13,29 @@ const CreatePost = () => {
     handleSubmit,
     reset,
     control,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm();
 
   const autoHashtags = useWatch({ control, name: 'autoHashtags' });
+  const axiosSecure = useAxiosSecure();
+  const { isAdmin, isCreator, isLoading, isError } = useMe();
+
+  if (isLoading) {
+    return <LoadingState />;
+  }
+
+  if (isError) {
+    return <ErrorState message="Failed to load user permissions." />;
+  }
+
+  if (!isAdmin && !isCreator) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleNewPost = async (data) => {
     try {
       if (!data) return;
-      await axiosInstance.post('/api/posts', data);
+      await axiosSecure.post('/api/posts', data);
       reset();
       toast.success('Your post is uploaded successfully');
     } catch (error) {
@@ -43,205 +60,217 @@ const CreatePost = () => {
             {/* Top accent bar */}
             <div className="h-1.5 w-full bg-primary/20" />
 
-            <form onSubmit={handleSubmit(handleNewPost)} className="p-4 md:p-7">
-              {/* Row 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold mb-1">Account</span>
-                  </label>
+            <form onSubmit={handleSubmit(handleNewPost)} className="p-4 md:p-7 space-y-8">
+              
+              {/* SECTION: Post Details */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Post Details</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Account</span>
+                    </label>
+                    <select
+                      className="
+                        select w-full rounded-2xl
+                        bg-base-100
+                        border border-base-300
+                        hover:border-primary/40
+                        focus:outline-none focus:border-primary/60
+                        focus:ring-2 focus:ring-primary/15
+                        transition cursor-pointer
+                      "
+                      name="account"
+                      defaultValue=""
+                      {...register('account', {
+                        required: 'Account is required',
+                      })}
+                    >
+                      <option value="" disabled hidden>
+                        Choose an Account
+                      </option>
+                      <option>snortpugs</option>
+                      <option>pugsnortz</option>
+                      <option>pugsnuff</option>
+                    </select>
+                    {errors.account && <p className="text-left mt-1 text-xs text-red-400/80">{errors.account.message}</p>}
+                  </div>
 
-                  <select
-                    className="
-                      select w-full rounded-2xl
-                      bg-base-100
-                      border border-base-300
-                      hover:border-base-400
-                      focus:outline-none focus:border-primary/60
-                      focus:ring-2 focus:ring-primary/15
-                      transition cursor-pointer
-                    "
-                    name="account"
-                    defaultValue=""
-                    {...register('account', {
-                      required: 'Account is required',
-                    })}
-                  >
-                    <option value="" disabled hidden>
-                      Choose an Account
-                    </option>
-                    <option>snortpugs</option>
-                    <option>pugsnortz</option>
-                    <option>pugsnuff</option>
-                  </select>
-                  {errors.account && <p className="text-left mt-1 text-xs text-red-400/80">{errors.account.message}</p>}
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Post Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="
+                        input w-full rounded-2xl
+                        bg-base-100/80
+                        border border-base-300
+                        hover:border-primary/40
+                        focus:outline-none focus:border-primary/60
+                        focus:ring-2 focus:ring-primary/15
+                        transition cursor-pointer
+                      "
+                      name="scheduledDate"
+                      {...register('scheduledDate', {
+                        required: 'Post Date is required',
+                      })}
+                    />
+                    {errors.scheduledDate && <p className="text-left mt-1 text-xs text-red-400/80">{errors.scheduledDate.message}</p>}
+                  </div>
                 </div>
+              </section>
 
+              {/* SECTION: Content */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Content</h2>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Caption</span>
+                    </label>
+                    <textarea
+                      className="
+                        textarea w-full min-h-32 rounded-2xl
+                        bg-base-100/80
+                        border border-base-300
+                        hover:border-primary/40
+                        focus:outline-none focus:border-primary/60
+                        focus:ring-2 focus:ring-primary/15
+                        transition text-[15px] leading-relaxed resize-y
+                      "
+                      name="caption"
+                      {...register('caption', {
+                        required: 'Caption is required',
+                      })}
+                      placeholder="Write the hook + caption..."
+                    />
+                    {errors.caption && <p className="text-left mt-1 text-xs text-red-400/80">{errors.caption.message}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text font-semibold mb-1">CTA</span>
+                      </label>
+                      <textarea
+                        className="
+                          textarea w-full h-full min-h-24 rounded-2xl
+                          bg-base-100/80
+                          border border-base-300
+                          hover:border-primary/40
+                          focus:outline-none focus:border-primary/60
+                          focus:ring-2 focus:ring-primary/15
+                          transition resize-y
+                        "
+                        name="cta"
+                        {...register('cta', {
+                          required: 'CTA is required',
+                        })}
+                        placeholder="Example: Follow @snortpugs for more..."
+                      />
+                      {errors.cta && <p className="text-left mt-1 text-xs text-red-400/80">{errors.cta.message}</p>}
+                    </div>
+
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text font-semibold mb-1">Source (Optional)</span>
+                      </label>
+                      <input
+                        className="
+                          input w-full rounded-2xl
+                          bg-base-100/80
+                          border border-base-300
+                          hover:border-primary/40
+                          focus:outline-none focus:border-primary/60
+                          focus:ring-2 focus:ring-primary/15
+                          transition
+                        "
+                        name="source"
+                        {...register('source')}
+                        placeholder="TikTok: @username / link"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION: Media */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Media</h2>
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-semibold mb-1">Post Date</span>
+                    <span className="label-text font-semibold mb-1">Drive Link (Optional)</span>
                   </label>
-
                   <input
-                    type="date"
+                    type="url"
                     className="
                       input w-full rounded-2xl
                       bg-base-100/80
                       border border-base-300
-                      hover:border-base-400
-                      focus:outline-none focus:border-primary/60
-                      focus:ring-2 focus:ring-primary/15
-                      transition cursor-pointer
-                    "
-                    name="scheduledDate"
-                    {...register('scheduledDate', {
-                      required: 'Post Date is required',
-                    })}
-                  />
-                  {errors.scheduledDate && <p className="text-left mt-1 text-xs text-red-400/80">{errors.scheduledDate.message}</p>}
-                </div>
-              </div>
-
-              {/* Caption */}
-              <div className="mt-4 form-control">
-                <label className="label">
-                  <span className="label-text font-semibold mb-1">Caption</span>
-                </label>
-
-                <div className="relative">
-                  <textarea
-                    className="
-                      textarea w-full min-h-40 rounded-2xl
-                      bg-base-100/80
-                      border border-base-300
-                      hover:border-base-400
+                      hover:border-primary/40
                       focus:outline-none focus:border-primary/60
                       focus:ring-2 focus:ring-primary/15
                       transition
                     "
-                    name="caption"
-                    {...register('caption', {
-                      required: 'Caption is required',
-                    })}
-                    placeholder="Write the hook + caption..."
+                    placeholder="https://drive.google.com/..."
+                    {...register('driveLink')}
                   />
-                  {errors.caption && <p className="text-left mt-1 text-xs text-red-400/80">{errors.caption.message}</p>}
                 </div>
-              </div>
+              </section>
 
-              {/* CTA */}
-              <div className="mt-4 form-control">
-                <label className="label">
-                  <span className="label-text font-semibold mb-1">CTA</span>
-                </label>
-
-                <textarea
-                  className="
-                    textarea w-full min-h-32 rounded-2xl
-                    bg-base-100/80
-                    border border-base-300
-                    hover:border-base-400
-                    focus:outline-none focus:border-primary/60
-                    focus:ring-2 focus:ring-primary/15
-                    transition
-                  "
-                  name="cta"
-                  {...register('cta', {
-                    required: 'CTA is required',
-                  })}
-                  placeholder="Example: Follow @snortpugs for more..."
-                />
-                {errors.cta && <p className="text-left mt-1 text-xs text-red-400/80">{errors.cta.message}</p>}
-              </div>
-
-              {/* Source */}
-              <div className="mt-4 form-control">
-                <label className="label">
-                  <span className="label-text font-semibold mb-1">Source (Optional)</span>
-                </label>
-
-                <input
-                  className="
-                    input w-full rounded-2xl
-                    bg-base-100/80
-                    border border-base-300
-                    hover:border-base-400
-                    focus:outline-none focus:border-primary/60
-                    focus:ring-2 focus:ring-primary/15
-                    transition
-                  "
-                  name="source"
-                  {...register('source')}
-                  placeholder="TikTok: @username / link"
-                />
-              </div>
-
-              {/* Drive link */}
-              <div className="mt-4 form-control">
-                <label className="label">
-                  <span className="label-text font-semibold mb-1">Drive Link (Optional)</span>
-                </label>
-
-                <input
-                  type="url"
-                  className="
-                    input w-full rounded-2xl
-                    bg-base-100/80
-                    border border-base-300
-                    hover:border-base-400
-                    focus:outline-none focus:border-primary/60
-                    focus:ring-2 focus:ring-primary/15
-                    transition
-                  "
-                  placeholder="https://drive.google.com/..."
-                  {...register('driveLink')}
-                />
-              </div>
-
-              {/* Hashtags */}
-              <div className="mt-4 form-control">
-                <div className="flex items-center justify-between">
-                  <label className="label">
-                    <span className="label-text font-semibold mb-1">Hashtags</span>
-                  </label>
-                  <label className="cursor-pointer label">
-                    <span className="label-text mr-2 text-xs font-medium text-primary">Auto-assign next group on save</span>
-                    <input 
-                      type="checkbox" 
-                      className="checkbox checkbox-sm checkbox-primary rounded-md" 
-                      {...register('autoHashtags')}
-                    />
-                  </label>
+              {/* SECTION: Hashtags */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Hashtags</h2>
+                <div className="form-control">
+                  <div className="flex items-center justify-between">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Hashtags</span>
+                    </label>
+                    <label className="cursor-pointer label">
+                      <span className="label-text mr-2 text-xs font-medium text-primary">Auto-assign next group on save</span>
+                      <input 
+                        type="checkbox" 
+                        className="checkbox checkbox-sm checkbox-primary rounded-md" 
+                        {...register('autoHashtags')}
+                      />
+                    </label>
+                  </div>
+                  <textarea
+                    className="
+                      textarea w-full min-h-24 rounded-2xl
+                      bg-base-100/80
+                      border border-base-300
+                      hover:border-primary/40
+                      focus:outline-none focus:border-primary/60
+                      focus:ring-2 focus:ring-primary/15
+                      transition disabled:opacity-50 disabled:cursor-not-allowed
+                      font-mono text-[13px] resize-y
+                    "
+                    name="hashtags"
+                    {...register('hashtags', {
+                      required: autoHashtags ? false : 'Hashtags are required',
+                    })}
+                    placeholder={autoHashtags ? "Hashtags will be automatically selected from the next group" : "#snortpugs #pugsofinsta #ilovepug ..."}
+                    disabled={autoHashtags}
+                  />
+                  {errors.hashtags && <p className="text-left mt-1 text-xs text-red-400/80">{errors.hashtags.message}</p>}
                 </div>
+              </section>
 
-                <textarea
-                  className="
-                    textarea w-full min-h-32 rounded-2xl
-                    bg-base-100/80
-                    border border-base-300
-                    hover:border-base-400
-                    focus:outline-none focus:border-primary/60
-                    focus:ring-2 focus:ring-primary/15
-                    transition disabled:opacity-50 disabled:cursor-not-allowed
-                  "
-                  name="hashtags"
-                  {...register('hashtags', {
-                    required: autoHashtags ? false : 'Hashtags are required',
-                  })}
-                  placeholder={autoHashtags ? "Hashtags will be automatically selected from the next group" : "#snortpugs #pugsofinsta #ilovepug ..."}
-                  disabled={autoHashtags}
-                />
-                {errors.hashtags && <p className="text-left mt-1 text-xs text-red-400/80">{errors.hashtags.message}</p>}
-              </div>
+              <div className="h-px w-full bg-base-200 mt-2 mb-2" />
 
               {/* Bottom Actions */}
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
-                <Link to="/dashboard/posts" className="btn btn-ghost rounded-xl border border-base-200 bg-base-100/60 hover:bg-base-100">
+              <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+                <Link to="/dashboard" className="btn btn-ghost rounded-xl border border-base-200 bg-base-100/60 hover:bg-base-100">
                   Cancel
                 </Link>
 
-                <button className="btn btn-primary rounded-xl shadow-sm border-none">
-                  Save Post
+                <button 
+                  disabled={isSubmitting}
+                  className="btn btn-primary rounded-xl shadow-sm border-none"
+                >
+                  {isSubmitting ? <span className="loading loading-spinner loading-sm text-current"></span> : 'Save Post'}
                 </button>
               </div>
             </form>

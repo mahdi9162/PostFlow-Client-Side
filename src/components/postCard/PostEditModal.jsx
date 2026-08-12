@@ -4,9 +4,6 @@ import toast from 'react-hot-toast';
 
 const accounts = ['snortpugs', 'pugsnortz', 'pugsnuff'];
 
-
-const cap = (s = '') => (s ? s[0].toUpperCase() + s.slice(1) : '');
-
 const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
   const axiosSecure = useAxiosSecure();
   const [loading, setLoading] = useState(false);
@@ -31,7 +28,9 @@ const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
       });
 
       toast.success('Post updated successfully');
-      if (refetch) refetch();
+      if (refetch) {
+        await refetch();
+      }
       modalRef?.current?.close?.();
       if (onClose) onClose();
     } catch (error) {
@@ -43,9 +42,9 @@ const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
 
   return (
     <dialog ref={modalRef} className="modal modal-bottom sm:modal-middle">
-      <div className="modal-box p-0 max-w-4xl border border-base-200 bg-base-100 shadow-2xl rounded-2xl overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-100">
+      <div className="modal-box p-0 w-full max-w-4xl max-h-[90vh] flex flex-col border border-base-200 bg-base-100 shadow-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden">
+        {/* Header (Fixed) */}
+        <div className="flex-none flex items-center justify-between px-4 sm:px-6 py-4 border-b border-base-200 bg-base-100/95 backdrop-blur z-10">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/20">
               <svg
@@ -75,119 +74,151 @@ const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
               modalRef?.current?.close?.();
               onClose?.();
             }}
-            className="btn bg-primary/30 btn-sm btn-circle opacity-60 hover:opacity-100"
+            className="btn bg-primary/10 btn-sm btn-circle text-primary hover:bg-primary hover:text-white"
           >
             ✕
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6">
+        {/* Body (Scrollable) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-base-200/20">
           {!post ? (
             <div className="py-10 text-center border-2 border-dashed border-base-200 rounded-xl bg-base-100">
               <p className="text-sm text-base-content/40 italic">Select a post to edit...</p>
             </div>
           ) : (
-            <form id="postEditForm" className="space-y-5" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                <div className="h-32 flex flex-col">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Caption</label>
-                  <textarea
-                    name="caption"
-                    defaultValue={p.caption || ''}
-                    className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-200/30 resize-none text-[13px] leading-relaxed"
-                    placeholder="Write caption here..."
-                  />
-                </div>
-
-                <div className="h-32 flex flex-col">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="form-control">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Account</label>
-                      <select
-                        name="account"
-                        defaultValue={p.account || ''}
-                        className="select select-bordered select-sm w-full rounded-lg bg-base-200/30"
-                      >
-                        <option value="" disabled hidden>
-                          Select
+            <form id="postEditForm" className="space-y-6 sm:space-y-8" onSubmit={handleSubmit}>
+              
+              {/* SECTION: Post Details */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Post Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Account</span>
+                    </label>
+                    <select
+                      name="account"
+                      defaultValue={p.account || ''}
+                      className="select select-bordered w-full rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+                      required
+                    >
+                      <option value="" disabled hidden>
+                        Select Account
+                      </option>
+                      {accounts.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
                         </option>
-                        {accounts.map((a) => (
-                          <option key={a} value={a}>
-                            {cap(a)}
-                          </option>
-                        ))}
-                      </select>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Post Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="scheduledDate"
+                      defaultValue={p.scheduledDate || ''}
+                      className="input input-bordered w-full rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+                      required
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION: Content */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Content</h2>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold mb-1">Caption</span>
+                    </label>
+                    <textarea
+                      name="caption"
+                      defaultValue={p.caption || ''}
+                      className="textarea textarea-bordered w-full min-h-32 rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 text-[15px] leading-relaxed resize-y"
+                      placeholder="Write caption here..."
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text font-semibold mb-1">CTA</span>
+                      </label>
+                      <textarea
+                        name="cta"
+                        defaultValue={p.cta || ''}
+                        className="textarea textarea-bordered w-full min-h-24 rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 resize-y"
+                        placeholder="Follow @username..."
+                        required
+                      />
                     </div>
 
                     <div className="form-control">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Post Date</label>
+                      <label className="label">
+                        <span className="label-text font-semibold mb-1">Source (Optional)</span>
+                      </label>
                       <input
-                        type="date"
-                        name="scheduledDate"
-                        defaultValue={p.scheduledDate || ''}
-                        className="input input-bordered input-sm w-full rounded-lg bg-base-200/30"
+                        name="source"
+                        defaultValue={p.source || ''}
+                        className="input input-bordered w-full rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+                        placeholder="TikTok @username"
                       />
                     </div>
                   </div>
-
-                  <div className="mt-3 flex-1 flex flex-col">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Source</label>
-                    <input
-                      name="source"
-                      defaultValue={p.source || ''}
-                      className="input input-bordered input-sm w-full rounded-lg bg-base-200/30"
-                      placeholder="TikTok @username"
-                    />
-                    <div className="flex-1" />
-                  </div>
                 </div>
-              </div>
+              </section>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                <div className="h-32 flex flex-col gap-3">
-                  <div className="flex-1 flex flex-col">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">CTA</label>
-                    <textarea
-                      name="cta"
-                      defaultValue={p.cta || ''}
-                      className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-200/30 resize-none text-[13px]"
-                      placeholder="Follow @username..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Drive Link</label>
-                    <input
-                      name="driveLink"
-                      defaultValue={p.driveLink || (p.media?.driveFileId ? `https://drive.google.com/open?id=${p.media.driveFileId}` : '')}
-                      className="input input-bordered input-sm w-full rounded-lg bg-base-200/30"
-                      placeholder="https://drive.google.com/..."
-                    />
-                  </div>
+              {/* SECTION: Media */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Media</h2>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold mb-1">Drive Link (Optional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    name="driveLink"
+                    defaultValue={p.driveLink || (p.media?.driveFileId ? `https://drive.google.com/open?id=${p.media.driveFileId}` : '')}
+                    className="input input-bordered w-full rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+                    placeholder="https://drive.google.com/..."
+                  />
                 </div>
+              </section>
 
-                <div className="h-42 flex flex-col">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Hashtags</label>
+              {/* SECTION: Hashtags */}
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-base-content/40 mb-3 pl-1">Hashtags</h2>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text font-semibold mb-1">Hashtags</span>
+                  </label>
                   <textarea
                     name="hashtags"
                     defaultValue={p.hashtags || ''}
-                    className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-200/30 font-mono text-[11px] resize-none"
+                    className="textarea textarea-bordered w-full min-h-24 rounded-2xl bg-base-100 border-base-300 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 font-mono text-[13px] resize-y"
                     placeholder="#pug #viral..."
+                    required
                   />
                 </div>
-              </div>
+              </section>
 
               <input type="hidden" name="postId" defaultValue={p._id || ''} />
             </form>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-base-200/20 border-t border-base-200">
+        {/* Footer (Fixed) */}
+        <div className="flex-none flex items-center justify-end gap-3 px-4 sm:px-6 py-4 bg-base-100 border-t border-base-200">
           <button
             type="button"
-            className="btn btn-ghost btn-sm font-bold text-base-content/50"
+            className="btn btn-ghost rounded-xl border border-base-200 bg-base-100/60 hover:bg-base-200 text-base-content/70"
             onClick={() => {
               modalRef?.current?.close?.();
               onClose?.();
@@ -199,10 +230,10 @@ const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
           <button 
             type="submit" 
             form="postEditForm" 
-            className="btn btn-primary btn-sm px-6 rounded-lg font-bold shadow-md shadow-primary/20"
-            disabled={loading}
+            className="btn btn-primary px-6 rounded-xl shadow-sm border-none"
+            disabled={loading || !post}
           >
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? <span className="loading loading-spinner loading-sm text-current"></span> : 'Save Changes'}
           </button>
         </div>
       </div>
