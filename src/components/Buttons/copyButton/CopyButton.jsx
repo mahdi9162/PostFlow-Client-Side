@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { formatInstagramPostText } from './formatInstagramPostText';
 
 const CopyButton = ({ post }) => {
   const [copied, setCopied] = useState(false);
 
-  const copyText = [post?.caption, post?.cta, '.', '.', '.', '.', post?.source, '.', '.', '.', '.', post?.hashtags].join('\n');
+  const copyText = formatInstagramPostText(post);
 
   const handleCopyButton = async () => {
     await navigator.clipboard.writeText(copyText);

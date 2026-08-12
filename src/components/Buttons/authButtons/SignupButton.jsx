@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 
 const SignupButton = () => {
   return (
-    <Link to="/signup" className="btn bg-primary/60 text-white">
+    <Link to="/signup" className="btn btn-sm sm:btn-md bg-primary/60 text-white">
       Signup
     </Link>
   );

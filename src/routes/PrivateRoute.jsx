@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router';
 import useAuth from '../hooks/useAuth';
-import Loading from '../components/Loading/Loading';
+import LoadingState from '../components/common/LoadingState';
 import useAxiosSecure from '../hooks/useAxiosSecure';
 import { useQuery } from '@tanstack/react-query';
 
@@ -25,7 +25,7 @@ const PrivateRoute = ({ children }) => {
   });
 
   // 1) firebase auth loading
-  if (loading) return <Loading />;
+  if (loading) return <LoadingState fullScreen={true} />;
 
   // 2) Not logged in
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
@@ -33,7 +33,7 @@ const PrivateRoute = ({ children }) => {
   // 3) Not verified
   if (!user.emailVerified) return <Navigate to="/check-email" replace />;
 
-  if (meLoading) return <Loading />;
+  if (meLoading) return <LoadingState fullScreen={true} />;
   if (meError) return <Navigate to="/login" replace />;
 
   const status = me?.status || 'pending';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import MainLayout from '../layouts/MainLayout/MainLayout';
 import Home from '../pages/public/home/Home';
 import Snortpugs from '../pages/public/snortpugs/Snortpugs';
@@ -12,7 +12,7 @@ import CheckEmail from '../pages/public/checkEmail/CheckEmail';
 import DashboardHome from '../pages/dashboard/dashboardHome/DashboardHome';
 import CreatePost from '../pages/dashboard/posts/CreatePost';
 import ForgotPassword from '../pages/public/forgotPass/ForgotPassword';
-import PendingApproval from '../pages/public/pendingApproval/pendingApproval';
+import PendingApproval from '../pages/public/pendingApproval/PendingApproval';
 import AuthOnlyRoute from './AuthOnlyRoute';
 import DashboardLayout from '../layouts/DashboardLayout/DashboardLayout';
 import AccessReq from '../pages/dashboard/admin/AccessReq';
@@ -102,8 +102,12 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: '/dashboard/hastags-manager',
+        path: '/dashboard/hashtags-manager',
         Component: AccountHashtagsManager,
+      },
+      {
+        path: '/dashboard/hastags-manager',
+        element: <Navigate to="/dashboard/hashtags-manager" replace />,
       },
     ],
   },

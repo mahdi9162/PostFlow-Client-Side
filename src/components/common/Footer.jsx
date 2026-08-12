@@ -4,7 +4,7 @@ import Container from '../container/Container';
 
 const Footer = () => {
   return (
-    <footer className="bg-secondary text-white py-12 border-t border-white/5">
+    <footer className="bg-secondary text-secondary-content py-12 border-t border-white/5">
       <Container>
         <div className="flex flex-col items-center text-center gap-8">
           {/* Logo Section */}

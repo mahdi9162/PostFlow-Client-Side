@@ -1,12 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
+import toast from 'react-hot-toast';
 
 const accounts = ['snortpugs', 'pugsnortz', 'pugsnuff'];
-const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
 
 const cap = (s = '') => (s ? s[0].toUpperCase() + s.slice(1) : '');
 
-const PostEditModal = ({ modalRef, post, onClose }) => {
+const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
+  const axiosSecure = useAxiosSecure();
+  const [loading, setLoading] = useState(false);
   const p = post || {};
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      await axiosSecure.patch(`/api/posts/${data.postId}`, {
+        account: data.account,
+        scheduledDate: data.scheduledDate,
+        caption: data.caption,
+        cta: data.cta,
+        source: data.source,
+        driveLink: data.driveLink,
+        hashtags: data.hashtags,
+      });
+
+      toast.success('Post updated successfully');
+      if (refetch) refetch();
+      modalRef?.current?.close?.();
+      if (onClose) onClose();
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to update post');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <dialog ref={modalRef} className="modal modal-bottom sm:modal-middle">
@@ -51,35 +84,30 @@ const PostEditModal = ({ modalRef, post, onClose }) => {
         {/* Body */}
         <div className="p-6">
           {!post ? (
-            <div className="py-10 text-center border-2 border-dashed border-base-200 rounded-xl bg-base-50">
+            <div className="py-10 text-center border-2 border-dashed border-base-200 rounded-xl bg-base-100">
               <p className="text-sm text-base-content/40 italic">Select a post to edit...</p>
             </div>
           ) : (
-            <form id="postEditForm" className="space-y-5">
-              {/* ===================== TOP SECTION ===================== */}
-              {/* Caption height == Right Meta block height */}
+            <form id="postEditForm" className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                {/* LEFT: CAPTION */}
                 <div className="h-32 flex flex-col">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Caption</label>
                   <textarea
                     name="caption"
                     defaultValue={p.caption || ''}
-                    className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-50/50 resize-none text-[13px] leading-relaxed"
+                    className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-200/30 resize-none text-[13px] leading-relaxed"
                     placeholder="Write caption here..."
                   />
                 </div>
 
-                {/* RIGHT: ACCOUNT + DAY + SOURCE */}
                 <div className="h-32 flex flex-col">
-                  {/* row 1 */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="form-control">
                       <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Account</label>
                       <select
                         name="account"
                         defaultValue={p.account || ''}
-                        className="select select-bordered select-sm w-full rounded-lg bg-base-50/50"
+                        className="select select-bordered select-sm w-full rounded-lg bg-base-200/30"
                       >
                         <option value="" disabled hidden>
                           Select
@@ -93,50 +121,37 @@ const PostEditModal = ({ modalRef, post, onClose }) => {
                     </div>
 
                     <div className="form-control">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Post Day</label>
-                      <select
-                        name="day"
-                        defaultValue={(p.day || '').toLowerCase()}
-                        className="select select-bordered select-sm w-full rounded-lg bg-base-50/50"
-                      >
-                        <option value="" disabled hidden>
-                          Select
-                        </option>
-                        {days.map((d) => (
-                          <option key={d} value={d}>
-                            {cap(d)}
-                          </option>
-                        ))}
-                      </select>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Post Date</label>
+                      <input
+                        type="date"
+                        name="scheduledDate"
+                        defaultValue={p.scheduledDate || ''}
+                        className="input input-bordered input-sm w-full rounded-lg bg-base-200/30"
+                      />
                     </div>
                   </div>
 
-                  {/* row 2 */}
                   <div className="mt-3 flex-1 flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Source</label>
                     <input
                       name="source"
                       defaultValue={p.source || ''}
-                      className="input input-bordered input-sm w-full rounded-lg bg-base-50/50"
+                      className="input input-bordered input-sm w-full rounded-lg bg-base-200/30"
                       placeholder="TikTok @username"
                     />
-                    {/* small spacer to keep it visually balanced */}
                     <div className="flex-1" />
                   </div>
                 </div>
               </div>
 
-              {/* ===================== BOTTOM SECTION ===================== */}
-              {/* Hashtags height == Left CTA+Drive block height */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                {/* LEFT: CTA + DRIVE */}
                 <div className="h-32 flex flex-col gap-3">
                   <div className="flex-1 flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">CTA</label>
                     <textarea
                       name="cta"
                       defaultValue={p.cta || ''}
-                      className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-50/50 resize-none text-[13px]"
+                      className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-200/30 resize-none text-[13px]"
                       placeholder="Follow @username..."
                     />
                   </div>
@@ -145,20 +160,19 @@ const PostEditModal = ({ modalRef, post, onClose }) => {
                     <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Drive Link</label>
                     <input
                       name="driveLink"
-                      defaultValue={p.driveLink || p.drive_video_link || ''}
-                      className="input input-bordered input-sm w-full rounded-lg bg-base-50/50"
+                      defaultValue={p.driveLink || (p.media?.driveFileId ? `https://drive.google.com/open?id=${p.media.driveFileId}` : '')}
+                      className="input input-bordered input-sm w-full rounded-lg bg-base-200/30"
                       placeholder="https://drive.google.com/..."
                     />
                   </div>
                 </div>
 
-                {/* RIGHT: HASHTAGS (defines height) */}
                 <div className="h-42 flex flex-col">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 mb-1">Hashtags</label>
                   <textarea
                     name="hashtags"
                     defaultValue={p.hashtags || ''}
-                    className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-50/50 font-mono text-[11px] resize-none"
+                    className="textarea textarea-bordered w-full flex-1 rounded-xl bg-base-200/30 font-mono text-[11px] resize-none"
                     placeholder="#pug #viral..."
                   />
                 </div>
@@ -170,7 +184,7 @@ const PostEditModal = ({ modalRef, post, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-base-50/40 border-t border-base-200">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-base-200/20 border-t border-base-200">
           <button
             type="button"
             className="btn btn-ghost btn-sm font-bold text-base-content/50"
@@ -182,8 +196,13 @@ const PostEditModal = ({ modalRef, post, onClose }) => {
             Cancel
           </button>
 
-          <button type="button" className="btn btn-primary btn-sm px-6 rounded-lg font-bold shadow-md shadow-primary/20">
-            Save Changes
+          <button 
+            type="submit" 
+            form="postEditForm" 
+            className="btn btn-primary btn-sm px-6 rounded-lg font-bold shadow-md shadow-primary/20"
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>

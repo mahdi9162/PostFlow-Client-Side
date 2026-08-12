@@ -5,8 +5,8 @@ import { Link } from 'react-router';
 const Logo = () => {
   return (
     <Link to="/">
-      <figure>
-        <img src={logoImg} className="w-26 md:w-30" alt="EduBridge Logo" />
+      <figure className="bg-white p-1.5 px-2 rounded-xl inline-block">
+        <img src={logoImg} className="w-20 sm:w-24 md:w-30" alt="PostFlow logo" />
       </figure>
     </Link>
   );

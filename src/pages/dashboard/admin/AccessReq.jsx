@@ -1,14 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
-import { formatDate } from '../../../services/formatDate';
+import { formatDate } from '../../../utils/formatDate';
 import { Check, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import LoadingState from '../../../components/common/LoadingState';
+import ErrorState from '../../../components/common/ErrorState';
 
 const AccessReq = () => {
   const axiosSecure = useAxiosSecure();
 
-  const { data: requests, refetch } = useQuery({
+  const { data: requests, refetch, isLoading, isError } = useQuery({
     queryKey: ['request'],
     queryFn: async () => {
       const res = await axiosSecure.get('/api/access-requests');
@@ -17,6 +19,14 @@ const AccessReq = () => {
   });
 
   const hasRequests = requests?.length > 0;
+
+  if (isLoading) {
+    return <LoadingState message="Loading access requests..." fullScreen />;
+  }
+
+  if (isError) {
+    return <ErrorState message="Failed to load access requests." onRetry={() => refetch()} />;
+  }
 
   const handleApproveBtn = async (id) => {
     try {
@@ -46,9 +56,7 @@ const AccessReq = () => {
           refetch();
         }
       });
-    } catch (error) {
-      console.log(error);
-      Swal.fire({
+    } catch (error) {      Swal.fire({
         title: 'Something went wrong',
         text: error?.response?.data?.message || error?.message || 'Please try again.',
         icon: 'error',
@@ -62,7 +70,7 @@ const AccessReq = () => {
       {/* Header Section */}
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-secondary">Access Requests</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-base-content">Access Requests</h1>
           <p className="mt-1 text-sm text-muted">Approve or reject users waiting for access.</p>
         </div>
         {hasRequests && (
@@ -82,14 +90,13 @@ const AccessReq = () => {
             /* Empty State */
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
               <div className="mb-4 text-4xl">✅</div>
-              <h2 className="text-xl font-bold text-secondary">No pending requests</h2>
+              <h2 className="text-xl font-bold text-base-content">No pending requests</h2>
               <p className="mt-2 text-sm text-muted">New sign-ups will appear here for approval.</p>
             </div>
           ) : (
-            /* Table Section - Removed min-h to stop large empty space */
-            <div className="overflow-x-auto overflow-y-visible">
-              <table className="table w-full">
-                <thead className="bg-base-200/40 text-secondary uppercase text-[11px] font-bold">
+            <div className="overflow-hidden">
+              <table className="table w-full block md:table">
+                <thead className="bg-base-200/40 text-base-content uppercase text-[11px] font-bold hidden md:table-header-group">
                   <tr>
                     <th className="py-4 px-6">Email</th>
                     <th>Requested Role</th>
@@ -97,12 +104,12 @@ const AccessReq = () => {
                     <th className="text-right px-6">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-base-200">
+                <tbody className="block md:table-row-group divide-y divide-base-200">
                   {requests.map((r) => (
-                    <tr key={r._id} className="hover:bg-base-200/10 transition-colors group">
-                      <td className="py-4 px-6">
+                    <tr key={r._id} className="block md:table-row p-4 md:p-0 hover:bg-base-200/10 transition-colors group">
+                      <td className="block md:table-cell py-2 md:py-4 px-2 md:px-6 before:content-['Email:'] md:before:hidden before:font-bold before:text-[10px] before:uppercase before:text-base-content/50 before:block mb-2 md:mb-0">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-secondary">{r.email}</span>
+                          <span className="font-semibold text-base-content">{r.email}</span>
                           <span className="flex items-center gap-1 text-[10px] font-bold uppercase text-warning mt-0.5">
                             <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse"></span>
                             Pending
@@ -110,16 +117,16 @@ const AccessReq = () => {
                         </div>
                       </td>
 
-                      <td>
+                      <td className="block md:table-cell py-2 md:py-4 px-2 md:px-6 before:content-['Role:'] md:before:hidden before:font-bold before:text-[10px] before:uppercase before:text-base-content/50 before:block mb-2 md:mb-0">
                         <span className="badge badge-ghost badge-sm font-medium text-xs">{r.requestedRole}</span>
                       </td>
 
-                      <td>
-                        <span className="text-sm text-muted">{formatDate(r.createdAt)}</span>
+                      <td className="block md:table-cell py-2 md:py-4 px-2 md:px-6 before:content-['Requested_At:'] md:before:hidden before:font-bold before:text-[10px] before:uppercase before:text-base-content/50 before:block mb-4 md:mb-0">
+                        <span className="text-sm text-base-content/70">{formatDate(r.createdAt)}</span>
                       </td>
 
-                      <td className="text-right px-6">
-                        <div className="flex justify-end items-center gap-2">
+                      <td className="block md:table-cell text-left md:text-right py-2 md:py-4 px-2 md:px-6">
+                        <div className="flex justify-start md:justify-end items-center gap-2">
                           {/* Approve */}
                           <button
                             onClick={() => handleApproveBtn(r._id)}

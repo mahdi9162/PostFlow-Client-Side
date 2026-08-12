@@ -43,7 +43,7 @@ const ForgotPassword = () => {
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Security Portal</span>
               </div>
 
-              <h2 className="text-2xl md:text-5xl font-extrabold tracking-tight text-secondary leading-[1.1]">
+              <h2 className="text-2xl md:text-5xl font-extrabold tracking-tight text-base-content leading-[1.1]">
                 Reset your
                 <span className="text-primary/60 italic md:block"> password.</span>
               </h2>
@@ -78,14 +78,14 @@ const ForgotPassword = () => {
           {/* Right: Form Section */}
           <div className="p-8 md:p-14 lg:p-16 bg-base-100 flex flex-col justify-center">
             <div className="mb-10 text-center lg:text-left">
-              <h3 className="text-2xl font-bold text-secondary">Account Recovery</h3>
+              <h3 className="text-2xl font-bold text-base-content">Account Recovery</h3>
               <p className="text-base-content/60 mt-2 font-medium">Please verify your identity</p>
             </div>
 
             <form onSubmit={handleResetButton} className="space-y-6">
               <div className="form-control w-full">
                 <label className="label mb-1">
-                  <span className="label-text font-bold text-secondary/80 tracking-wide">Enter Your Email</span>
+                  <span className="label-text font-bold text-base-content/80 tracking-wide">Enter Your Email</span>
                 </label>
                 <input
                   type="email"

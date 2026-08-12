@@ -2,8 +2,10 @@ import React from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
 import { FiUserCheck } from 'react-icons/fi';
-import Loading from '../../components/Loading/Loading';
+import LoadingState from '../../components/common/LoadingState';
 import { useMe } from '../../hooks/useMe';
+
+import ThemeToggle from '../../components/common/ThemeToggle';
 
 const DashboardLayout = () => {
   const { isAdmin, isCreator } = useMe();
@@ -18,13 +20,13 @@ const DashboardLayout = () => {
     ].join(' ');
 
   return (
-    <div className="drawer lg:drawer-open min-h-screen bg-linear-to-br from-primary/6 via-base-100 to-secondary/6">
+    <div className="drawer lg:drawer-open min-h-screen bg-base-200/30">
       <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
 
       {/* ================== CONTENT ================== */}
       <div className="drawer-content flex flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 bg-base-100/80 backdrop-blur border-b border-primary/10">
+        <header className="sticky top-0 z-30 bg-base-100/80 backdrop-blur-md border-b border-primary/10">
           <div className="navbar px-3 md:px-6">
             <div className="navbar-start gap-2">
               {/* toggle button (mobile) */}
@@ -47,18 +49,19 @@ const DashboardLayout = () => {
 
               {/* Title */}
               <div className="flex flex-col leading-tight">
-                <h1 className="text-base md:text-lg font-extrabold text-secondary">Dashboard</h1>
+                <h1 className="text-base md:text-lg font-extrabold text-base-content">Dashboard</h1>
                 <p className="text-xs md:text-sm text-base-content/60">PostFlow workspace</p>
               </div>
             </div>
 
             <div className="navbar-center hidden md:flex">
-              <div className="px-4 py-2 rounded-full bg-primary/10 border border-primary/15 text-sm text-secondary/70">
+              <div className="px-4 py-2 rounded-full bg-primary/10 border border-primary/15 text-sm text-base-content/70">
                 Internal tool — team access
               </div>
             </div>
 
             <div className="navbar-end gap-2">
+              <ThemeToggle />
               <button className="btn btn-ghost btn-circle rounded-xl hover:bg-primary/8">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -85,7 +88,7 @@ const DashboardLayout = () => {
         </header>
 
         {/* Page body */}
-        <main className="flex-1 px-3 md:px-6 py-4 md:py-6">
+        <main className="flex-1 px-4 md:px-6 lg:px-8 py-6 md:py-8 w-full max-w-7xl mx-auto">
           <Outlet />
         </main>
       </div>
@@ -95,7 +98,7 @@ const DashboardLayout = () => {
         <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
 
         {/* Mobile */}
-        <aside className="w-72 bg-base-100 lg:bg-linear-to-b lg:from-secondary/6 lg:via-primary/6 lg:to-base-100/80 border-r border-primary/12 min-h-full flex flex-col lg:backdrop-blur">
+        <aside className="w-72 bg-base-100 border-r border-base-200 min-h-full flex flex-col">
           {/* Sidebar header */}
           <div className="px-4 py-4 border-b border-primary/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -103,7 +106,7 @@ const DashboardLayout = () => {
                 <span className="text-primary font-black">P</span>
               </div>
               <Link to="/" className="leading-tight">
-                <p className="font-extrabold text-secondary">PostFlow</p>
+                <p className="font-extrabold text-base-content">PostFlow</p>
                 <p className="text-xs text-base-content/60">Planner dashboard</p>
               </Link>
             </div>
@@ -159,7 +162,7 @@ const DashboardLayout = () => {
                     </NavLink>
                   </li>
                   <li>
-                    <NavLink to="/dashboard/hastags-manager" className={navClass}>
+                    <NavLink to="/dashboard/hashtags-manager" className={navClass}>
                       <FiUserCheck className="text-lg" />
                       <span className="font-semibold">Account Hashtags Manager</span>
                     </NavLink>
@@ -180,7 +183,7 @@ const DashboardLayout = () => {
                 </div>
 
                 <div className="flex-1 leading-tight">
-                  <p className="text-sm font-bold text-secondary">Team member</p>
+                  <p className="text-sm font-bold text-base-content">Team member</p>
                   <p className="text-xs text-base-content/60">Helper / Admin</p>
                 </div>
 

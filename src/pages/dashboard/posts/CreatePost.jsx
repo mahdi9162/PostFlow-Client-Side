@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Link } from 'react-router';
 import axiosInstance from '../../../services/axiosInstance';
 import toast from 'react-hot-toast';
@@ -9,8 +9,11 @@ const CreatePost = () => {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm();
+
+  const autoHashtags = useWatch({ control, name: 'autoHashtags' });
 
   const handleNewPost = async (data) => {
     try {
@@ -19,26 +22,26 @@ const CreatePost = () => {
       reset();
       toast.success('Your post is uploaded successfully');
     } catch (error) {
-      console.log(error);
+      toast.error(error?.response?.data?.message || 'Failed to create post');
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-linear-to-br from-primary/10 via-base-100 to-secondary/10 rounded-4xl">
-      <div className="mx-auto max-w-6xl px-3 md:px-6 py-6 md:py-10">
+    <div className="w-full">
+      <div className="w-full">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-secondary tracking-tight">Create New Post</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-base-content tracking-tight">Create New Post</h1>
             <p className="text-sm text-base-content/60 mt-1">Fill the fields — your team will copy from the post card.</p>
           </div>
         </div>
 
         {/* Main Card */}
         <div className="mt-6">
-          <div className="rounded-3xl border border-base-200 bg-base-100/80 backdrop-blur-xl shadow-xl shadow-primary/10 overflow-hidden">
+          <div className="rounded-3xl border border-base-200 bg-base-100/80 backdrop-blur-xl shadow-sm overflow-hidden">
             {/* Top accent bar */}
-            <div className="h-1.5 w-full bg-linear-to-r from-primary via-primary/70 to-secondary/60" />
+            <div className="h-1.5 w-full bg-primary/20" />
 
             <form onSubmit={handleSubmit(handleNewPost)} className="p-4 md:p-7">
               {/* Row 1 */}
@@ -67,21 +70,22 @@ const CreatePost = () => {
                     <option value="" disabled hidden>
                       Choose an Account
                     </option>
-                    <option>Snortpugs</option>
-                    <option>Pugsnortz</option>
-                    <option>Pugsnuff</option>
+                    <option>snortpugs</option>
+                    <option>pugsnortz</option>
+                    <option>pugsnuff</option>
                   </select>
                   {errors.account && <p className="text-left mt-1 text-xs text-red-400/80">{errors.account.message}</p>}
                 </div>
 
                 <div className="form-control">
                   <label className="label">
-                    <span className="label-text font-semibold mb-1">Day of week</span>
+                    <span className="label-text font-semibold mb-1">Post Date</span>
                   </label>
 
-                  <select
+                  <input
+                    type="date"
                     className="
-                      select w-full rounded-2xl
+                      input w-full rounded-2xl
                       bg-base-100/80
                       border border-base-300
                       hover:border-base-400
@@ -89,24 +93,12 @@ const CreatePost = () => {
                       focus:ring-2 focus:ring-primary/15
                       transition cursor-pointer
                     "
-                    defaultValue=""
-                    name="day"
-                    {...register('day', {
-                      required: 'Day is required',
+                    name="scheduledDate"
+                    {...register('scheduledDate', {
+                      required: 'Post Date is required',
                     })}
-                  >
-                    <option value="" disabled hidden>
-                      Choose a Day
-                    </option>
-                    <option>Saturday</option>
-                    <option>Sunday</option>
-                    <option>Monday</option>
-                    <option>Tuesday</option>
-                    <option>Wednesday</option>
-                    <option>Thursday</option>
-                    <option>Friday</option>
-                  </select>
-                  {errors.day && <p className="text-left mt-1 text-xs text-red-400/80">{errors.day.message}</p>}
+                  />
+                  {errors.scheduledDate && <p className="text-left mt-1 text-xs text-red-400/80">{errors.scheduledDate.message}</p>}
                 </div>
               </div>
 
@@ -119,7 +111,7 @@ const CreatePost = () => {
                 <div className="relative">
                   <textarea
                     className="
-                      textarea w-full min-h-37.5 rounded-2xl
+                      textarea w-full min-h-40 rounded-2xl
                       bg-base-100/80
                       border border-base-300
                       hover:border-base-400
@@ -145,7 +137,7 @@ const CreatePost = () => {
 
                 <textarea
                   className="
-                    textarea w-full min-h-27.5 rounded-2xl
+                    textarea w-full min-h-32 rounded-2xl
                     bg-base-100/80
                     border border-base-300
                     hover:border-base-400
@@ -165,7 +157,7 @@ const CreatePost = () => {
               {/* Source */}
               <div className="mt-4 form-control">
                 <label className="label">
-                  <span className="label-text font-semibold mb-1">Source</span>
+                  <span className="label-text font-semibold mb-1">Source (Optional)</span>
                 </label>
 
                 <input
@@ -179,40 +171,21 @@ const CreatePost = () => {
                     transition
                   "
                   name="source"
-                  {...register('source', {
-                    required: 'Source is required',
-                  })}
+                  {...register('source')}
                   placeholder="TikTok: @username / link"
                 />
-                {errors.source && <p className="text-left mt-1 text-xs text-red-400/80">{errors.source.message}</p>}
               </div>
 
               {/* Drive link */}
               <div className="mt-4 form-control">
                 <label className="label">
-                  <span className="label-text font-semibold mb-1">Drive video link</span>
+                  <span className="label-text font-semibold mb-1">Drive Link (Optional)</span>
                 </label>
 
                 <input
                   type="url"
-                  className="input w-full rounded-2xl bg-base-100/80 border border-base-300 hover:border-base-400 focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/15 transition"
-                  placeholder="https://drive.google.com/..."
-                  {...register('driveLink', {
-                    required: 'DriveLink is required',
-                  })}
-                />
-                {errors.driveLink && <p className="text-left mt-1 text-xs text-red-400/80">{errors.driveLink.message}</p>}
-              </div>
-
-              {/* Hashtags */}
-              <div className="mt-4 form-control">
-                <label className="label">
-                  <span className="label-text font-semibold mb-1">Hashtags</span>
-                </label>
-
-                <textarea
                   className="
-                    textarea w-full min-h-27.5 rounded-2xl
+                    input w-full rounded-2xl
                     bg-base-100/80
                     border border-base-300
                     hover:border-base-400
@@ -220,11 +193,43 @@ const CreatePost = () => {
                     focus:ring-2 focus:ring-primary/15
                     transition
                   "
+                  placeholder="https://drive.google.com/..."
+                  {...register('driveLink')}
+                />
+              </div>
+
+              {/* Hashtags */}
+              <div className="mt-4 form-control">
+                <div className="flex items-center justify-between">
+                  <label className="label">
+                    <span className="label-text font-semibold mb-1">Hashtags</span>
+                  </label>
+                  <label className="cursor-pointer label">
+                    <span className="label-text mr-2 text-xs font-medium text-primary">Auto-assign next group on save</span>
+                    <input 
+                      type="checkbox" 
+                      className="checkbox checkbox-sm checkbox-primary rounded-md" 
+                      {...register('autoHashtags')}
+                    />
+                  </label>
+                </div>
+
+                <textarea
+                  className="
+                    textarea w-full min-h-32 rounded-2xl
+                    bg-base-100/80
+                    border border-base-300
+                    hover:border-base-400
+                    focus:outline-none focus:border-primary/60
+                    focus:ring-2 focus:ring-primary/15
+                    transition disabled:opacity-50 disabled:cursor-not-allowed
+                  "
                   name="hashtags"
                   {...register('hashtags', {
-                    required: 'Hashtags is required',
+                    required: autoHashtags ? false : 'Hashtags are required',
                   })}
-                  placeholder="#snortpugs #pugsofinsta #ilovepug ..."
+                  placeholder={autoHashtags ? "Hashtags will be automatically selected from the next group" : "#snortpugs #pugsofinsta #ilovepug ..."}
+                  disabled={autoHashtags}
                 />
                 {errors.hashtags && <p className="text-left mt-1 text-xs text-red-400/80">{errors.hashtags.message}</p>}
               </div>
@@ -235,7 +240,7 @@ const CreatePost = () => {
                   Cancel
                 </Link>
 
-                <button className="btn rounded-xl border-0 text-white bg-linear-to-b from-primary to-primary/80 shadow-lg shadow-primary/25 hover:shadow-primary/35">
+                <button className="btn btn-primary rounded-xl shadow-sm border-none">
                   Save Post
                 </button>
               </div>

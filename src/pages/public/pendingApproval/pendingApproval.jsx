@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import useAuth from '../../../hooks/useAuth';
 import toast from 'react-hot-toast';
-import Loading from '../../../components/Loading/Loading';
+import LoadingState from '../../../components/common/LoadingState';
 
 const PendingApproval = () => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ const PendingApproval = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <LoadingState fullScreen={true} />;
   }
 
   return (

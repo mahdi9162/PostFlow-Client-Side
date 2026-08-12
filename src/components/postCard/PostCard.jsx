@@ -2,35 +2,35 @@ import React, { useEffect, useRef, useState } from 'react';
 import Container from '../container/Container';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { capitalizeFirstLetter } from '../../services/capitalizeFirstLetter';
-import { formatDate } from '../../services/formatDate';
+import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
+import { formatDate } from '../../utils/formatDate';
 import CopyButton from '../Buttons/copyButton/CopyButton';
-import axiosInstance from '../../services/axiosInstance';
+
 import toast from 'react-hot-toast';
 import { useMe } from '../../hooks/useMe';
-import { getTodayBd } from '../../services/getTodayBd';
+import { getTodayDateBd } from '../../utils/getTodayDateBd';
 import PostEditModal from './PostEditModal';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
+
+import { formatInstagramPostText } from '../Buttons/copyButton/formatInstagramPostText';
 
 const PostCard = ({ account }) => {
   const axiosSecure = useAxiosSecure();
 
   const postEditRef = useRef(null);
   const [editPost, setEditPost] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(() => getTodayBd());
+  const [selectedDate, setSelectedDate] = useState(() => getTodayDateBd());
   const [selectedStatus, setSelectedStatus] = useState('pending');
-
-  const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
   const { isAdmin, isCreator } = useMe();
 
   const { data: posts = [], refetch } = useQuery({
-    queryKey: ['posts', account, selectedDay, selectedStatus],
+    queryKey: ['posts', account, selectedDate, selectedStatus],
     queryFn: async () => {
       const res = await axiosSecure.get('/api/posts', {
         params: {
           account,
-          day: selectedDay,
+          scheduledDate: selectedDate,
           status: selectedStatus,
         },
       });
@@ -41,13 +41,24 @@ const PostCard = ({ account }) => {
 
   const handleMarkAsButton = async (id, status) => {
     try {
-      await axiosInstance.patch(`/api/posts/${id}/status`, {
+      await axiosSecure.patch(`/api/posts/${id}/status`, {
         status,
       });
       refetch();
       toast.success(`Marked as ${status} - successfully`);
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleDeleteButton = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await axiosSecure.delete(`/api/posts/${id}`);
+      refetch();
+      toast.success('Post deleted successfully');
     } catch (error) {
-      console.log(error);
+      toast.error(error?.response?.data?.message || 'Failed to delete post');
     }
   };
 
@@ -66,26 +77,39 @@ const PostCard = ({ account }) => {
     setEditPost(null);
   };
 
+  const handlePrevDay = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() - 1);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleNextDay = () => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + 1);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
   return (
     <Container>
       <div className="min-h-screen bg-base-200/40 py-8 rounded-4xl">
         <div className="mx-auto w-full max-w-5xl px-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium text-base-content/70">Day:</span>
+              <span className="text-sm font-medium text-base-content/70">Date:</span>
 
               <div className="flex items-center gap-2">
-                <select
-                  value={selectedDay}
-                  onChange={(e) => setSelectedDay(e.target.value)}
-                  className="select select-sm select-bordered rounded-full cursor-pointer"
-                >
-                  {days.map((day, i) => (
-                    <option key={i} value={day}>
-                      {capitalizeFirstLetter(day)}
-                    </option>
-                  ))}
-                </select>
+                <button onClick={handlePrevDay} className="btn btn-sm btn-circle btn-ghost">
+                  ←
+                </button>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="input input-sm input-bordered rounded-full cursor-pointer"
+                />
+                <button onClick={handleNextDay} className="btn btn-sm btn-circle btn-ghost">
+                  →
+                </button>
               </div>
 
               <select
@@ -112,7 +136,7 @@ const PostCard = ({ account }) => {
               <div key={post._id} className="mt-6 rounded-2xl bg-base-100 p-6 shadow-sm ring-1 ring-base-200">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="badge badge-info badge-outline rounded-full">{capitalizeFirstLetter(post.day)}</span>
+                    <span className="badge badge-info badge-outline rounded-full">{capitalizeFirstLetter(post.day || 'N/A')}</span>
                     <span className="badge badge-warning badge-outline rounded-full">{capitalizeFirstLetter(post.status)}</span>
                     <span className="badge badge-success badge-outline rounded-full">{capitalizeFirstLetter(account)}</span>
                   </div>
@@ -126,13 +150,7 @@ const PostCard = ({ account }) => {
 
                 <div className="mt-3 rounded-2xl bg-base-200/60 p-4 ring-1 ring-base-200">
                   <p className="whitespace-pre-line text-sm leading-6 text-base-content/80">
-                    <span>{post.caption}</span>
-                    {'\n'}
-                    <span>{post.cta}</span>
-                    {'\n'}.{'\n'}.{'\n'}.{'\n'}.{'\n'}
-                    <span>{post.source}</span>
-                    {'\n'}.{'\n'}.{'\n'}.{'\n'}.{'\n'}
-                    <span className="max-w-xl block">{post.hashtags}</span>
+                    {formatInstagramPostText(post)}
                   </p>
                 </div>
 
@@ -140,11 +158,11 @@ const PostCard = ({ account }) => {
                   <CopyButton post={post} />
 
                   <a
-                    href={post?.driveLink || '#'}
+                    href={post?.driveLink || (post?.media?.driveFileId ? `https://drive.google.com/open?id=${post.media.driveFileId}` : '#')}
                     target="_blank"
                     rel="noreferrer"
                     className={`btn bg-primary/30 text-black py-1 md:py-0 flex-1 rounded-full border border-base-300 cursor-pointer ${
-                      !post?.driveLink ? 'btn-disabled bg-white text-black/20' : ''
+                      (!post?.driveLink && !post?.media?.driveFileId) ? 'btn-disabled bg-white text-black/20' : ''
                     }`}
                   >
                     Open Drive
@@ -177,6 +195,7 @@ const PostCard = ({ account }) => {
                     </button>
 
                     <button
+                      onClick={() => handleDeleteButton(post._id)}
                       className={isAdmin ? `btn btn-circle btn-ghost border border-error/40 text-error` : `hidden`}
                       aria-label="Delete"
                       title="Delete"
@@ -191,7 +210,7 @@ const PostCard = ({ account }) => {
         </div>
       </div>
 
-      <PostEditModal modalRef={postEditRef} post={editPost} onClose={closeEditModal} />
+      <PostEditModal modalRef={postEditRef} post={editPost} onClose={closeEditModal} refetch={refetch} />
     </Container>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import DashHomeAdmin from '../admin/dashHomeAdmin';
+import DashHomeAdmin from '../admin/DashHomeAdmin';
 
 const DashboardHome = () => {
   return (

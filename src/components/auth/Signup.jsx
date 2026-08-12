@@ -3,7 +3,7 @@ import Container from '../container/Container';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
-import Loading from '../Loading/Loading';
+import LoadingState from '../common/LoadingState';
 import toast from 'react-hot-toast';
 
 const Signup = () => {
@@ -42,7 +42,7 @@ const Signup = () => {
     }
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <LoadingState fullScreen={true} />;
 
   return (
     <Container>
@@ -69,13 +69,13 @@ const Signup = () => {
               </div>
 
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-secondary">PostFlow</h1>
+                <h1 className="text-3xl font-black tracking-tight text-base-content">PostFlow</h1>
                 <p className="text-sm font-medium uppercase tracking-widest opacity-70">Planner Pro</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl md:text-4xl font-bold leading-tight text-secondary">
+              <h2 className="text-2xl md:text-4xl font-bold leading-tight text-base-content">
                 Optimize your social <span className="text-primary">workflow.</span>
               </h2>
 
@@ -87,7 +87,7 @@ const Signup = () => {
             <div className="mt-8 hidden lg:block">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/15">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm font-semibold text-secondary">Internal Team Access Only</span>
+                <span className="text-sm font-semibold text-base-content">Internal Team Access Only</span>
               </div>
             </div>
           </div>
@@ -102,7 +102,7 @@ const Signup = () => {
               "
             >
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-secondary">Create Account</h2>
+                <h2 className="text-2xl font-bold text-base-content">Create Account</h2>
                 <p className="text-sm mt-1 text-base-content/60">Join your team to start planning</p>
               </div>
 

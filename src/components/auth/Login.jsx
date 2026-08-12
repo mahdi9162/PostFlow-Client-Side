@@ -3,7 +3,7 @@ import Container from '../container/Container';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
-import Loading from '../Loading/Loading';
+import LoadingState from '../common/LoadingState';
 import { reload } from 'firebase/auth';
 import { auth } from '../../firebase/firebase.config';
 import toast from 'react-hot-toast';
@@ -42,16 +42,14 @@ const Login = () => {
       await refreshUser();
       toast.success('You are logged in!');
       navigate('/', { replace: true });
-    } catch (error) {
-      console.log(error);
-      toast.error('Login failed. Check email/password.');
+    } catch {      toast.error('Login failed. Check email/password.');
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <Loading />;
+    return <LoadingState fullScreen={true} />;
   }
 
   return (
@@ -68,13 +66,13 @@ const Login = () => {
               </div>
 
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-secondary">PostFlow</h1>
+                <h1 className="text-3xl font-black tracking-tight text-base-content">PostFlow</h1>
                 <p className="text-sm font-medium uppercase tracking-widest opacity-70">Post Planner</p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl md:text-4xl font-bold leading-tight text-secondary">
+              <h2 className="text-2xl md:text-4xl font-bold leading-tight text-base-content">
                 Sign in to keep the <span className="text-primary">flow</span>.
               </h2>
               <p className="text-base md:text-lg max-w-md mx-auto lg:mx-0 text-muted">
@@ -85,7 +83,7 @@ const Login = () => {
             <div className="mt-8 hidden lg:block">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/15">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm font-semibold text-secondary">Internal Team Access Only</span>
+                <span className="text-sm font-semibold text-base-content">Internal Team Access Only</span>
               </div>
             </div>
           </div>
@@ -94,7 +92,7 @@ const Login = () => {
           <div className="w-full flex-1 order-1 lg:order-2">
             <div className="bg-base-100 rounded-4xl p-6 md:p-10 border shadow-2xl shadow-primary/10 border-secondary/10">
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-secondary">Sign in</h2>
+                <h2 className="text-2xl font-bold text-base-content">Sign in</h2>
                 <p className="text-sm mt-1 text-muted">Use your team email to access the planner</p>
               </div>
 

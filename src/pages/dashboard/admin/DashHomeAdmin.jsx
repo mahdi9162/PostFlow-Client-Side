@@ -1,8 +1,9 @@
 import React from 'react';
+import StatusBadge from '../../../components/common/StatusBadge';
 
 const DashHomeAdmin = () => {
   return (
-    <div className="p-6">
+    <div className="w-full">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-2">
         <h1 className="text-2xl font-semibold text-base-content">Welcome Admin</h1>
@@ -14,7 +15,7 @@ const DashHomeAdmin = () => {
         <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-sm text-base-content/60">Pending requests</p>
-            <span className="badge badge-warning badge-sm">Queue</span>
+            <StatusBadge status="queue" />
           </div>
           <div className="mt-3 text-3xl font-semibold text-base-content">—</div>
           <p className="mt-2 text-xs text-base-content/50">Users waiting for approval</p>
@@ -23,7 +24,7 @@ const DashHomeAdmin = () => {
         <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-sm text-base-content/60">Today posts</p>
-            <span className="badge badge-success badge-sm">Daily</span>
+            <StatusBadge status="daily" />
           </div>
           <div className="mt-3 text-3xl font-semibold text-base-content">—</div>
           <p className="mt-2 text-xs text-base-content/50">Posts marked as posted today</p>
@@ -32,7 +33,7 @@ const DashHomeAdmin = () => {
         <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-sm text-base-content/60">Accounts</p>
-            <span className="badge badge-primary badge-sm">Active</span>
+            <StatusBadge status="active" />
           </div>
           <div className="mt-3 text-3xl font-semibold text-base-content">3</div>
           <p className="mt-2 text-xs text-base-content/50">snortpugs • pugsnortz • pugsnuff</p>
