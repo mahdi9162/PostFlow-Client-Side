@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatInstagramPostText } from './formatInstagramPostText';
 
-const CopyButton = ({ post }) => {
+const CopyButton = ({ post, className }) => {
   const [copied, setCopied] = useState(false);
 
   const copyText = formatInstagramPostText(post);
@@ -16,7 +16,7 @@ const CopyButton = ({ post }) => {
   };
 
   return (
-    <button onClick={handleCopyButton} className="btn btn-primary flex-1 py-1 md:py-0 rounded-full">
+    <button onClick={handleCopyButton} className={className || "btn btn-primary flex-1 py-1 md:py-0 rounded-full"}>
       {copied ? 'Copied ✅' : 'Copy'}
     </button>
   );
