@@ -181,6 +181,7 @@ const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold mb-1">Drive Link (Optional)</span>
+                    <span className="label-text-alt text-base-content/60">Paste the Google Drive file link.</span>
                   </label>
                   <input
                     type="url"

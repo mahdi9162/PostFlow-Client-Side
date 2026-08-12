@@ -1,14 +1,22 @@
 import React from 'react';
 
-const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
+const DeleteConfirmModal = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  isDeleting, 
+  title = "Delete post?", 
+  message = "Are you sure you want to delete this post? This action cannot be undone.",
+  confirmLabel = "Delete"
+}) => {
   if (!isOpen) return null;
 
   return (
     <dialog className="modal modal-bottom sm:modal-middle" open>
       <div className="modal-box border border-error/20 shadow-2xl rounded-t-3xl sm:rounded-2xl">
-        <h3 className="font-bold text-lg text-error">Delete post?</h3>
+        <h3 className="font-bold text-lg text-error">{title}</h3>
         <p className="py-4 text-base-content/70">
-          Are you sure you want to delete this post? This action cannot be undone.
+          {message}
         </p>
         <div className="modal-action">
           <button 
@@ -23,7 +31,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? <span className="loading loading-spinner loading-sm text-current"></span> : 'Delete'}
+            {isDeleting ? <span className="loading loading-spinner loading-sm text-current"></span> : confirmLabel}
           </button>
         </div>
       </div>

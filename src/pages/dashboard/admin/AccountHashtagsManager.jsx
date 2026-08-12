@@ -1,10 +1,12 @@
-import React from 'react';
-import { Hash, Save, Info } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import useAxiosSecure from '../../../hooks/useAxiosSecure';
+import React, { useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Navigate } from 'react-router';
 import AccountTagGroupsPanel from './components/AccountTagGroupsPanel';
-import { useQueryClient } from '@tanstack/react-query';
+import HashtagGroupModal from './components/HashtagGroupModal';
+import useAxiosSecure from '../../../hooks/useAxiosSecure';
+import { useMe } from '../../../hooks/useMe';
+import LoadingState from '../../../components/common/LoadingState';
+import ErrorState from '../../../components/common/ErrorState';
 
 const accounts = [
   { value: 'snortpugs', label: 'Snortpugs' },
@@ -13,161 +15,103 @@ const accounts = [
 ];
 
 const AccountHashtagsManager = () => {
+  const [selectedAccount, setSelectedAccount] = useState('');
+  const addModalRef = useRef(null);
   const axiosSecure = useAxiosSecure();
-  const queryClient = useQueryClient();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
+  const { isAdmin, isLoading: roleLoading, isError: roleError } = useMe();
 
-  const handleTagsSubmit = async (data) => {
-    try {
-      const { account, name, tags } = data;
+  const { data: groups = [], isLoading, isError } = useQuery({
+    queryKey: ['hashtagGroups', selectedAccount],
+    enabled: Boolean(selectedAccount),
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/api/hashtagGroups?accountId=${selectedAccount}`);
+      return res.data;
+    },
+  });
 
-      // validation
-      const tagsArray = tags
-        .split(/[\s,]+/)
-        .map((t) => t.trim())
-        .filter((item) => Boolean(item));
+  if (roleLoading) {
+    return <LoadingState />;
+  }
 
-      // exactly 5
-      if (tagsArray.length !== 5) {
-        toast.error('Exactly 5 unique hashtags are required');
-        return;
-      }
+  if (roleError) {
+    return <ErrorState message="Failed to load user permissions." />;
+  }
 
-      // duplicate check
-      const hasDuplicate = new Set(tagsArray.map((t) => t.toLowerCase())).size !== tagsArray.length;
-      if (hasDuplicate) {
-        toast.error('Duplicate tags are not allowed');
-        return;
-      }
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-      await axiosSecure.post('/api/hashtagGroups', {
-        account,
-        name,
-        hashtags: tagsArray,
-        enabled: true
-      });
-      
-      toast.success('Hashtag group created successfully!');
-      queryClient.invalidateQueries({ queryKey: ['hashtagGroups', account] });
-      reset();
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Failed to create group');
-    }
+  const statsUnavailable = isLoading || isError;
+  const totalGroups = statsUnavailable ? '—' : groups.length;
+  const enabledGroups = statsUnavailable ? '—' : groups.filter((g) => g.enabled).length;
+
+  const openAddModal = () => {
+    addModalRef.current?.showModal();
   };
 
   return (
     <div className="p-3 sm:p-6 lg:p-8 min-h-screen bg-base-200/30">
-      <section>
-        {/* Header */}
-        <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-base-content">Hashtag Groups Manager</h1>
-            <p className="mt-1 text-xs sm:text-sm text-muted max-w-[58ch] leading-relaxed">
-              Manage saved hashtag groups per account. The system will automatically rotate through enabled groups.
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-4 sm:gap-6 xl:flex-row xl:items-center xl:justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-base-content">Hashtag Groups Manager</h1>
+          <p className="mt-1 text-xs sm:text-sm text-muted max-w-[58ch] leading-relaxed">
+            Manage saved hashtag groups per account. The system will automatically rotate through enabled groups.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-base-100 p-2 sm:p-3 rounded-2xl border border-base-200 shadow-sm">
+          <select
+            className="select select-bordered select-sm sm:select-md rounded-xl text-sm min-w-[160px] font-semibold"
+            value={selectedAccount}
+            onChange={(e) => setSelectedAccount(e.target.value)}
+          >
+            <option value="" disabled hidden>
+              Select Account
+            </option>
+            {accounts.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+          
+          {selectedAccount && (
+            <button onClick={openAddModal} className="btn btn-primary btn-sm sm:btn-md rounded-xl px-6">
+              ＋ Add Group
+            </button>
+          )}
+        </div>
+      </div>
+
+      {selectedAccount ? (
+        <>
+          <div className="mb-4 flex items-center justify-between px-2">
+            <p className="text-sm font-semibold text-base-content/70">
+              <span className="text-base-content font-bold">{totalGroups}</span> Groups · <span className="text-success font-bold">{enabledGroups}</span> Enabled
             </p>
           </div>
+
+          <AccountTagGroupsPanel 
+            selectedAccount={selectedAccount} 
+            groups={groups} 
+            isLoading={isLoading} 
+            isError={isError} 
+            accounts={accounts}
+          />
+        </>
+      ) : (
+        <div className="mt-10 bg-base-100 rounded-3xl p-10 text-center shadow-sm border border-base-200 flex flex-col items-center justify-center">
+          <span className="text-4xl mb-4 opacity-50">📱</span>
+          <h3 className="text-xl font-bold text-base-content">No account selected</h3>
+          <p className="text-base-content/60 mt-2 max-w-sm">
+            Select an account from the top right to manage its hashtag groups.
+          </p>
         </div>
+      )}
 
-        {/* Main Card */}
-        <div className="card bg-base-100 shadow-sm border border-base-200 overflow-visible">
-          <form onSubmit={handleSubmit(handleTagsSubmit)} className="p-4 sm:p-5 lg:p-6">
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-5">
-              {/* Left panel */}
-              <div className="xl:col-span-1">
-                <div className="rounded-2xl border border-base-200 bg-base-100 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="h-9 w-9 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Hash className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-base-content">Select Account</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="text-[11px] sm:text-xs font-semibold text-base-content/70">Account</label>
-                    <select
-                      className="select select-bordered w-full mt-2 rounded-xl text-sm"
-                      {...register('account', { required: 'Account is required' })}
-                      defaultValue=""
-                    >
-                      <option value="" disabled hidden>
-                        Select an Account
-                      </option>
-                      {accounts.map((a) => (
-                        <option key={a.value} value={a.value}>
-                          {a.label}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.account && <p className="text-left mt-1 text-xs text-red-400/80">{errors.account.message}</p>}
-                  </div>
-                  
-                  <div className="mt-4">
-                    <label className="text-[11px] sm:text-xs font-semibold text-base-content/70">Group Name</label>
-                    <input
-                      className="input input-bordered w-full mt-2 rounded-xl text-sm"
-                      placeholder="e.g. Pug Reels 1"
-                      {...register('name', { required: 'Group Name is required' })}
-                    />
-                    {errors.name && <p className="text-left mt-1 text-xs text-red-400/80">{errors.name.message}</p>}
-                  </div>
-
-                  <div className="mt-4 rounded-xl border border-base-200 bg-base-200/30 p-3">
-                    <div className="flex items-start gap-2">
-                      <Info className="h-4 w-4 text-muted mt-0.5 shrink-0" />
-                      <div className="text-xs text-muted leading-relaxed">
-                        <span className="font-semibold text-base-content/80">Goal:</span> Organize strictly 5 hashtags per group. PostFlow will deterministically rotate through enabled groups.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right panel */}
-              <div className="xl:col-span-2">
-                <div className="rounded-2xl border border-base-200 bg-base-100 p-4 sm:p-5">
-                  <div>
-                    <p className="text-sm font-bold text-base-content">Hashtags (Exactly 5)</p>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="text-[11px] sm:text-xs font-semibold text-base-content/70">
-                      Paste EXACTLY 5 hashtags (comma or space separated)
-                    </label>
-                    <textarea
-                      className="textarea textarea-bordered w-full mt-2 min-h-32 sm:min-h-40 rounded-2xl text-sm leading-relaxed font-mono"
-                      placeholder="#snortpugs #puglife #pugsofinstagram #dogreels #funnydogs"
-                      {...register('tags', { required: 'Tags are required' })}
-                    />
-                    {errors.tags && <p className="text-left mt-1 text-xs text-red-400/80">{errors.tags.message}</p>}
-                  </div>
-
-                  <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="flex items-center justify-end gap-2 ml-auto">
-                      <button type="button" onClick={() => reset()} className="btn btn-sm rounded-xl bg-base-100 border border-base-200">Cancel</button>
-                      <button type="submit" className="btn btn-sm rounded-xl btn-primary shadow-sm">
-                        <Save className="h-4 w-4" />
-                        Save Group
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section className='mt-10'>
-        <AccountTagGroupsPanel />
-      </section>
+      <HashtagGroupModal key={`add-${selectedAccount}`} modalRef={addModalRef} mode="add" account={selectedAccount} accounts={accounts} />
     </div>
   );
 };

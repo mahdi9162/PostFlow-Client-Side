@@ -1,38 +1,29 @@
-import React, { useState } from 'react';
-import { Hash } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
 import useAxiosSecure from '../../../../hooks/useAxiosSecure';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import TagGroupsList from './TagGroupsList';
 import toast from 'react-hot-toast';
 import LoadingState from '../../../../components/common/LoadingState';
 import ErrorState from '../../../../components/common/ErrorState';
+import DeleteConfirmModal from '../../../../components/common/DeleteConfirmModal';
+import HashtagGroupModal from './HashtagGroupModal';
 
-const accounts = [
-  { value: 'snortpugs', label: 'Snortpugs' },
-  { value: 'pugsnortz', label: 'Pugsnortz' },
-  { value: 'pugsnuff', label: 'Pugsnuff' },
-];
-
-const AccountTagGroupsPanel = () => {
-  const [selectedAccount, setSelectedAccount] = useState('');
+const AccountTagGroupsPanel = ({ selectedAccount, groups, isLoading, isError, accounts }) => {
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
 
-  const { data: groups = [], isLoading, isError } = useQuery({
-    queryKey: ['hashtagGroups', selectedAccount],
-    enabled: Boolean(selectedAccount),
-    queryFn: async () => {
-      const res = await axiosSecure.get(`/api/hashtagGroups?accountId=${selectedAccount}`);
-      return res.data;
-    },
-  });
+  const editModalRef = useRef(null);
+  const [editingGroup, setEditingGroup] = useState(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(null);
 
   const toggleEnableMutation = useMutation({
     mutationFn: async (group) => {
       await axiosSecure.patch(`/api/hashtagGroups/${group._id}`, { enabled: !group.enabled });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hashtagGroups', selectedAccount] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['hashtagGroups', selectedAccount] });
       toast.success('Group status updated');
     },
     onError: () => toast.error('Failed to update group status')
@@ -40,15 +31,16 @@ const AccountTagGroupsPanel = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (group) => {
-      if (!window.confirm(`Delete group "${group.name}"?`)) throw new Error('cancelled');
       await axiosSecure.delete(`/api/hashtagGroups/${group._id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hashtagGroups', selectedAccount] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['hashtagGroups', selectedAccount] });
       toast.success('Group deleted');
+      setDeleteModalOpen(false);
+      setDeletingGroup(null);
     },
-    onError: (err) => {
-      if (err.message !== 'cancelled') toast.error('Failed to delete group');
+    onError: () => {
+      toast.error('Failed to delete group');
     }
   });
 
@@ -56,8 +48,8 @@ const AccountTagGroupsPanel = () => {
     mutationFn: async (orderedGroupIds) => {
       await axiosSecure.patch('/api/hashtagGroups/reorder', { account: selectedAccount, orderedGroupIds });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hashtagGroups', selectedAccount] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['hashtagGroups', selectedAccount] });
     },
     onError: () => toast.error('Failed to reorder groups')
   });
@@ -65,7 +57,6 @@ const AccountTagGroupsPanel = () => {
   const handleMoveUp = (index) => {
     if (index === 0) return;
     const newGroups = [...groups];
-    // swap positions
     const temp = newGroups[index - 1];
     newGroups[index - 1] = newGroups[index];
     newGroups[index] = temp;
@@ -75,56 +66,69 @@ const AccountTagGroupsPanel = () => {
   const handleMoveDown = (index) => {
     if (index === groups.length - 1) return;
     const newGroups = [...groups];
-    // swap positions
     const temp = newGroups[index + 1];
     newGroups[index + 1] = newGroups[index];
     newGroups[index] = temp;
     reorderMutation.mutate(newGroups.map(g => g._id));
   };
 
+  const confirmDelete = (group) => {
+    setDeletingGroup(group);
+    setDeleteModalOpen(true);
+  };
+
+  const openEditModal = (group) => {
+    setEditingGroup(group);
+    // showModal() is called via useEffect after the new keyed dialog mounts.
+  };
+
+  useEffect(() => {
+    if (editingGroup && editModalRef.current) {
+      editModalRef.current.showModal();
+    }
+  }, [editingGroup]);
+
+  const isMutating = toggleEnableMutation.isPending || reorderMutation.isPending;
+
   return (
-    <div className="rounded-2xl border border-base-200 bg-base-100 p-4">
-      <div className="flex items-start gap-3">
-        <div className="h-9 w-9 shrink-0 rounded-xl bg-primary/10 flex items-center justify-center">
-          <Hash className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <p className="text-sm font-bold text-base-content">Manage Groups</p>
-          <p className="text-xs text-muted leading-relaxed">View, reorder, enable, or delete groups.</p>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <label className="text-[11px] sm:text-xs font-semibold text-base-content/70">Account</label>
-        <select
-          className="select select-bordered w-full mt-2 rounded-xl text-sm"
-          value={selectedAccount}
-          onChange={(e) => setSelectedAccount(e.target.value)}
-        >
-          <option value="" disabled hidden>
-            Select an Account
-          </option>
-          {accounts.map((a) => (
-            <option key={a.value} value={a.value}>
-              {a.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
+    <div className="rounded-2xl border border-base-200 bg-base-100">
       {isLoading && selectedAccount ? (
-        <LoadingState message="Loading groups..." />
+        <div className="p-4"><LoadingState message="Loading groups..." /></div>
       ) : isError ? (
-        <ErrorState message="Failed to load groups." />
+        <div className="p-4"><ErrorState message="Failed to load groups." /></div>
       ) : (
         <TagGroupsList 
           groups={groups} 
           onToggleEnable={(g) => toggleEnableMutation.mutate(g)}
-          onDelete={(g) => deleteMutation.mutate(g)} 
+          onDelete={confirmDelete} 
           onMoveUp={handleMoveUp}
           onMoveDown={handleMoveDown}
+          onEdit={openEditModal}
+          isMutating={isMutating}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal 
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={() => deleteMutation.mutate(deletingGroup)}
+        isDeleting={deleteMutation.isPending}
+        title="Delete Hashtag Group?"
+        message={`Are you sure you want to delete "${deletingGroup?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete Group"
+      />
+
+      {/* Edit Group Modal */}
+      <HashtagGroupModal 
+        key={editingGroup ? editingGroup._id : 'edit-modal'}
+        modalRef={editModalRef} 
+        mode="edit" 
+        group={editingGroup} 
+        account={selectedAccount} 
+        accounts={accounts}
+        onClose={() => setEditingGroup(null)}
+      />
     </div>
   );
 };
