@@ -26,6 +26,8 @@ const PostCard = ({ account }) => {
   const [selectedDate, setSelectedDate] = useState(() => getTodayDateBd());
   const [selectedStatus, setSelectedStatus] = useState('pending');
   const [statusLoadingIds, setStatusLoadingIds] = useState(new Set());
+  const [downloadingIds, setDownloadingIds] = useState(new Set());
+
   
   // Delete state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -97,6 +99,64 @@ const PostCard = ({ account }) => {
       });
     }
   };
+
+  const handleDownloadMedia = async (post) => {
+    if (!post?._id || !post?.media?.driveFileId) return;
+
+    setDownloadingIds((prev) => new Set(prev).add(post._id));
+    try {
+      const response = await axiosSecure.get(`/api/posts/${post._id}/media/download`, {
+        responseType: 'blob',
+      });
+
+      let filename = post.media?.fileName || `post-media-${post._id}`;
+      const disposition = response.headers['content-disposition'];
+      if (disposition) {
+        const matchUtf8 = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (matchUtf8 && matchUtf8[1]) {
+          filename = decodeURIComponent(matchUtf8[1]);
+        } else {
+          const matchStandard = disposition.match(/filename="?([^";]+)"?/i);
+          if (matchStandard && matchStandard[1]) {
+            filename = decodeURIComponent(matchStandard[1]);
+          }
+        }
+      }
+
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Download started successfully');
+    } catch (error) {
+      let errorMsg = 'Failed to download media.';
+      if (error.response?.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          if (json?.message) errorMsg = json.message;
+        } catch {
+          // fallback errorMsg
+        }
+      } else if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      }
+      toast.error(errorMsg);
+    } finally {
+      setDownloadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(post._id);
+        return next;
+      });
+    }
+  };
+
 
   const openDeleteModal = (id) => {
     setPostToDelete(id);
@@ -365,6 +425,32 @@ const PostCard = ({ account }) => {
                             Open Drive
                           </button>
                         )}
+
+                        {post?.media?.driveFileId ? (
+                          <button
+                            onClick={() => handleDownloadMedia(post)}
+                            disabled={downloadingIds.has(post._id)}
+                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-secondary/20 bg-secondary/10 text-secondary hover:bg-secondary/20 font-semibold"
+                          >
+                            {downloadingIds.has(post._id) ? (
+                              <span className="loading loading-spinner loading-sm text-current"></span>
+                            ) : (
+                              <>
+                                <span className="text-lg leading-none mb-0.5">⇩</span>
+                                Download Media
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-base-300 bg-base-200 text-base-content/30 font-semibold"
+                          >
+                            <span className="text-lg leading-none mb-0.5">⇩</span>
+                            Download Media
+                          </button>
+                        )}
+
 
                         <button
                           onClick={() => handleMarkAsButton(post._id, isPending ? 'posted' : 'pending')}
