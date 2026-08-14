@@ -406,6 +406,36 @@ const PostCard = ({ account }) => {
                       <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                         <CopyButton post={post} className="btn btn-primary flex-1 w-full sm:w-auto rounded-xl" />
 
+                        {post?.media?.driveFileId ? (
+                          <button
+                            onClick={() => handleDownloadMedia(post)}
+                            disabled={downloadingIds.has(post._id)}
+                            className={`btn btn-secondary flex-1 w-full sm:w-auto rounded-xl font-semibold text-secondary-content shadow-sm transition-all border-none ${
+                              downloadingIds.has(post._id) ? 'opacity-90 cursor-not-allowed' : 'hover:scale-[1.01] active:scale-[0.99]'
+                            }`}
+                          >
+                            {downloadingIds.has(post._id) ? (
+                              <>
+                                <span className="loading loading-spinner loading-sm text-current"></span>
+                                <span>Downloading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-lg leading-none mb-0.5">⇩</span>
+                                Download Media
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-base-300 bg-base-200/80 text-base-content/40 font-semibold cursor-not-allowed"
+                          >
+                            <span className="text-lg leading-none mb-0.5">⇩</span>
+                            Download Media
+                          </button>
+                        )}
+
                         {post?.driveLink || post?.media?.driveFileId ? (
                           <a
                             href={post?.driveLink || `https://drive.google.com/open?id=${post.media.driveFileId}`}
@@ -423,31 +453,6 @@ const PostCard = ({ account }) => {
                           >
                             <span className="text-lg leading-none mb-0.5">☁</span>
                             Open Drive
-                          </button>
-                        )}
-
-                        {post?.media?.driveFileId ? (
-                          <button
-                            onClick={() => handleDownloadMedia(post)}
-                            disabled={downloadingIds.has(post._id)}
-                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-secondary/20 bg-secondary/10 text-secondary hover:bg-secondary/20 font-semibold"
-                          >
-                            {downloadingIds.has(post._id) ? (
-                              <span className="loading loading-spinner loading-sm text-current"></span>
-                            ) : (
-                              <>
-                                <span className="text-lg leading-none mb-0.5">⇩</span>
-                                Download Media
-                              </>
-                            )}
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-base-300 bg-base-200 text-base-content/30 font-semibold"
-                          >
-                            <span className="text-lg leading-none mb-0.5">⇩</span>
-                            Download Media
                           </button>
                         )}
 
