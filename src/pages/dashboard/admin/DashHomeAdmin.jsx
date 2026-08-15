@@ -1,7 +1,11 @@
 import React from 'react';
 import StatusBadge from '../../../components/common/StatusBadge';
+import { useMe } from '../../../hooks/useMe';
+import PreparePostsCard from '../../../components/sync/PreparePostsCard';
 
 const DashHomeAdmin = () => {
+  const { isAdmin, isCreator, isLoading } = useMe();
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -40,7 +44,7 @@ const DashHomeAdmin = () => {
         </div>
       </div>
 
-      {/* Quick actions + Accounts */}
+      {/* Quick actions + Accounts + Sync */}
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Quick actions */}
         <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm lg:col-span-2">
@@ -62,6 +66,10 @@ const DashHomeAdmin = () => {
             <p className="text-sm text-base-content">
               <span className="font-medium">Tip:</span> Keep approvals tight. Only approved users should see protected tools.
             </p>
+          </div>
+          
+          <div className="mt-6">
+            {!isLoading && (isAdmin || isCreator) && <PreparePostsCard />}
           </div>
         </div>
 
