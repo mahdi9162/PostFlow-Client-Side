@@ -15,6 +15,7 @@ import AuthOnlyRoute from './AuthOnlyRoute';
 import DashboardLayout from '../layouts/DashboardLayout/DashboardLayout';
 import AccessReq from '../pages/dashboard/admin/AccessReq';
 import AccountHashtagsManager from '../pages/dashboard/admin/AccountHashtagsManager';
+import AccountManager from '../pages/dashboard/admin/accountManager/AccountManager';
 
 export const router = createBrowserRouter([
   {
@@ -90,6 +91,10 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard/hastags-manager',
         element: <Navigate to="/dashboard/hashtags-manager" replace />,
+      },
+      {
+        path: '/dashboard/account-manager',
+        Component: AccountManager,
       },
     ],
   },
