@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { useMe } from '../../../hooks/useMe';
+import { useAccounts } from '../../../hooks/useAccounts';
 import LoadingState from '../../../components/common/LoadingState';
 import ErrorState from '../../../components/common/ErrorState';
 
@@ -18,13 +19,14 @@ const CreatePost = () => {
 
   const autoHashtags = useWatch({ control, name: 'autoHashtags' });
   const axiosSecure = useAxiosSecure();
-  const { isAdmin, isCreator, isLoading, isError } = useMe();
+  const { isAdmin, isCreator, isLoading: isMeLoading, isError: isMeError } = useMe();
+  const { accounts, isLoading: isAccountsLoading, isError: isAccountsError } = useAccounts();
 
-  if (isLoading) {
+  if (isMeLoading) {
     return <LoadingState />;
   }
 
-  if (isError) {
+  if (isMeError) {
     return <ErrorState message="Failed to load user permissions." />;
   }
 
@@ -87,11 +89,11 @@ const CreatePost = () => {
                       })}
                     >
                       <option value="" disabled hidden>
-                        Choose an Account
+                        {isAccountsLoading ? 'Loading accounts...' : isAccountsError ? 'Error loading accounts' : accounts.filter(a => a.isActive).length === 0 ? 'No accounts available' : 'Choose an Account'}
                       </option>
-                      <option>snortpugs</option>
-                      <option>pugsnortz</option>
-                      <option>pugsnuff</option>
+                      {accounts.filter(a => a.isActive).map(account => (
+                        <option key={account.slug} value={account.slug}>{account.displayName}</option>
+                      ))}
                     </select>
                     {errors.account && <p className="text-left mt-1 text-xs text-red-400/80">{errors.account.message}</p>}
                   </div>

@@ -8,16 +8,13 @@ import { useMe } from '../../../hooks/useMe';
 import LoadingState from '../../../components/common/LoadingState';
 import ErrorState from '../../../components/common/ErrorState';
 
-const accounts = [
-  { value: 'snortpugs', label: 'Snortpugs' },
-  { value: 'pugsnortz', label: 'Pugsnortz' },
-  { value: 'pugsnuff', label: 'Pugsnuff' },
-];
-
+import { useAccounts } from '../../../hooks/useAccounts';
 const AccountHashtagsManager = () => {
   const [selectedAccount, setSelectedAccount] = useState('');
   const addModalRef = useRef(null);
   const axiosSecure = useAxiosSecure();
+  const { accounts, isLoading: isAccountsLoading } = useAccounts();
+  const accountOptions = accounts.map(a => ({ value: a.slug, label: a.displayName }));
 
   const { isAdmin, isLoading: roleLoading, isError: roleError } = useMe();
 
@@ -68,9 +65,9 @@ const AccountHashtagsManager = () => {
             onChange={(e) => setSelectedAccount(e.target.value)}
           >
             <option value="" disabled hidden>
-              Select Account
+              {isAccountsLoading ? 'Loading accounts...' : 'Select Account'}
             </option>
-            {accounts.map((a) => (
+            {accountOptions.map((a) => (
               <option key={a.value} value={a.value}>
                 {a.label}
               </option>
@@ -98,7 +95,7 @@ const AccountHashtagsManager = () => {
             groups={groups} 
             isLoading={isLoading} 
             isError={isError} 
-            accounts={accounts}
+            accounts={accountOptions}
           />
         </>
       ) : (
@@ -111,7 +108,7 @@ const AccountHashtagsManager = () => {
         </div>
       )}
 
-      <HashtagGroupModal key={`add-${selectedAccount}`} modalRef={addModalRef} mode="add" account={selectedAccount} accounts={accounts} />
+      <HashtagGroupModal key={`add-${selectedAccount}`} modalRef={addModalRef} mode="add" account={selectedAccount} accounts={accountOptions} />
     </div>
   );
 };

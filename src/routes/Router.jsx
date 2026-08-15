@@ -2,9 +2,7 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import MainLayout from '../layouts/MainLayout/MainLayout';
 import Home from '../pages/public/home/Home';
-import Snortpugs from '../pages/public/snortpugs/Snortpugs';
-import Pugsnortz from '../pages/public/pugsnortz/Pugsnortz';
-import Pugsnuff from '../pages/public/pugsnuff/Pugsnuff';
+import AccountPage from '../pages/public/account/AccountPage';
 import Signup from '../components/auth/Signup';
 import Login from '../components/auth/Login';
 import PrivateRoute from './PrivateRoute';
@@ -28,26 +26,10 @@ export const router = createBrowserRouter([
         Component: Home,
       },
       {
-        path: 'snortpugs',
+        path: ':accountSlug',
         element: (
           <PrivateRoute>
-            <Snortpugs />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: 'pugsnortz',
-        element: (
-          <PrivateRoute>
-            <Pugsnortz />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: 'pugsnuff',
-        element: (
-          <PrivateRoute>
-            <Pugsnuff />
+            <AccountPage />
           </PrivateRoute>
         ),
       },

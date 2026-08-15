@@ -9,6 +9,7 @@ import useAuth from '../../hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import ThemeToggle from './ThemeToggle';
+import { useAccounts } from '../../hooks/useAccounts';
 
 const Navbar = () => {
   const { user } = useAuth();
@@ -26,15 +27,19 @@ const Navbar = () => {
   });
 
   const isApproved = me?.status === 'approved';
+  
+  const { accounts } = useAccounts(isApproved);
 
   const links = [
     { id: 1, name: 'Home', path: '/' },
     ...(isApproved
       ? [
-          { id: 2, name: 'Snortpugs', path: '/snortpugs' },
-          { id: 3, name: 'Pugsnortz', path: '/pugsnortz' },
-          { id: 4, name: 'Pugsnuff', path: '/pugsnuff' },
-          { id: 5, name: 'Dashboard', path: '/dashboard' },
+          ...accounts.filter(a => a.isActive).map(a => ({
+            id: a.slug,
+            name: a.displayName,
+            path: `/${a.slug}`
+          })),
+          { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
         ]
       : []),
 

@@ -1,10 +1,12 @@
 import React from 'react';
 import StatusBadge from '../../../components/common/StatusBadge';
 import { useMe } from '../../../hooks/useMe';
+import { useAccounts } from '../../../hooks/useAccounts';
 import PreparePostsCard from '../../../components/sync/PreparePostsCard';
 
 const DashHomeAdmin = () => {
   const { isAdmin, isCreator, isLoading } = useMe();
+  const { accounts, isLoading: isAccountsLoading } = useAccounts();
 
   return (
     <div className="w-full">
@@ -39,8 +41,10 @@ const DashHomeAdmin = () => {
             <p className="text-sm text-base-content/60">Accounts</p>
             <StatusBadge status="active" />
           </div>
-          <div className="mt-3 text-3xl font-semibold text-base-content">3</div>
-          <p className="mt-2 text-xs text-base-content/50">snortpugs • pugsnortz • pugsnuff</p>
+          <div className="mt-3 text-3xl font-semibold text-base-content">{isAccountsLoading ? '—' : accounts.length}</div>
+          <p className="mt-2 text-xs text-base-content/50 truncate w-full" title={accounts.map(a => a.displayName).join(' • ')}>
+            {isAccountsLoading ? 'Loading accounts...' : (accounts.map(a => a.displayName).join(' • ') || 'No accounts')}
+          </p>
         </div>
       </div>
 
@@ -81,19 +85,23 @@ const DashHomeAdmin = () => {
           </div>
 
           <div className="mt-4 space-y-3">
-            {[
-              { name: 'snortpugs', note: 'Primary', badge: 'badge-primary' },
-              { name: 'pugsnortz', note: 'Secondary', badge: 'badge-ghost' },
-              { name: 'pugsnuff', note: 'Secondary', badge: 'badge-ghost' },
-            ].map((a) => (
-              <div key={a.name} className="flex items-center justify-between rounded-xl border border-base-200 p-3">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-base-content">@{a.name}</p>
-                  <p className="text-xs text-base-content/50">{a.note}</p>
+            {isAccountsLoading ? (
+              <div className="p-3 text-sm text-base-content/50 text-center">Loading accounts...</div>
+            ) : accounts.length === 0 ? (
+              <div className="p-3 text-sm text-base-content/50 text-center">No accounts found</div>
+            ) : (
+              accounts.map((a) => (
+                <div key={a.slug} className="flex items-center justify-between rounded-xl border border-base-200 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-base-content">@{a.slug}</p>
+                    <p className="text-xs text-base-content/50">{a.displayName}</p>
+                  </div>
+                  <span className={`badge ${a.isActive ? 'badge-primary' : 'badge-ghost'}`}>
+                    {a.isActive ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
-                <span className={`badge ${a.badge}`}>Active</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

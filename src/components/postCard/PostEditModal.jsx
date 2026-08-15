@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import toast from 'react-hot-toast';
 
-const accounts = ['snortpugs', 'pugsnortz', 'pugsnuff'];
-
+import { useAccounts } from '../../hooks/useAccounts';
 const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
   const axiosSecure = useAxiosSecure();
+  const { accounts, isLoading: isAccountsLoading } = useAccounts();
   const [loading, setLoading] = useState(false);
   const p = post || {};
+  
+  const registryAccounts = accounts || [];
+  const activeAccounts = registryAccounts.filter(a => a.isActive);
+  const currentAccountInRegistry = registryAccounts.find(a => a.slug === p.account);
+  const isHistoricalInactive = p.account && currentAccountInRegistry && !currentAccountInRegistry.isActive;
+  const isHistoricalMissing = p.account && !currentAccountInRegistry;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,13 +110,23 @@ const PostEditModal = ({ modalRef, post, onClose, refetch }) => {
                       required
                     >
                       <option value="" disabled hidden>
-                        Select Account
+                        {isAccountsLoading ? 'Loading accounts...' : 'Select Account'}
                       </option>
-                      {accounts.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
+                      {activeAccounts.map((a) => (
+                        <option key={a.slug} value={a.slug}>
+                          {a.displayName}
                         </option>
                       ))}
+                      {isHistoricalInactive && (
+                        <option key={p.account} value={p.account}>
+                          {currentAccountInRegistry.displayName} (Inactive)
+                        </option>
+                      )}
+                      {isHistoricalMissing && (
+                        <option key={p.account} value={p.account}>
+                          {p.account} (Inactive)
+                        </option>
+                      )}
                     </select>
                   </div>
 
