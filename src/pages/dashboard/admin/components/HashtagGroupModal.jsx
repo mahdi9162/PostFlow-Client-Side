@@ -8,6 +8,8 @@ const HashtagGroupModal = ({ modalRef, mode, group, account, onClose }) => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   
+  const formId = `hashtagGroupForm-${mode}`;
+
   const [name, setName] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [hashtags, setHashtags] = useState(['', '', '', '', '']);
@@ -131,7 +133,7 @@ const HashtagGroupModal = ({ modalRef, mode, group, account, onClose }) => {
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-base-200/20">
-          <form id="hashtagGroupForm" className="space-y-6" onSubmit={handleSubmit}>
+          <form id={formId} className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {mode === 'add' && (
                 <div className="form-control">
@@ -209,7 +211,7 @@ const HashtagGroupModal = ({ modalRef, mode, group, account, onClose }) => {
 
           <button 
             type="submit" 
-            form="hashtagGroupForm" 
+            form={formId} 
             className="btn btn-primary px-6 rounded-xl shadow-sm border-none disabled:opacity-70"
             disabled={loading}
           >
