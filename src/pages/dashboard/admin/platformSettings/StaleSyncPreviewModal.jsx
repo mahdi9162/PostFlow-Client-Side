@@ -107,7 +107,7 @@ const StaleSyncPreviewModal = ({ previewData, isOpen, onClose }) => {
           ) : (
             // Confirmation State
             <div>
-              <div className="flex items-start gap-3 bg-warning/10 text-warning-content p-3 rounded-xl border border-warning/20 mb-4">
+              <div className="flex items-start gap-3 bg-warning/10 text-base-content p-3 rounded-xl border border-warning/20 mb-4">
                 <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-warning" />
                 <div className="text-sm">
                   <p className="font-bold mb-1">Resolve {staleCount} stale running {staleCount === 1 ? 'sync' : 'syncs'}?</p>
