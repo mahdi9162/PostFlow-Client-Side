@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { usePlatformSettings } from '../../../../hooks/usePlatformSettings';
 import { useMe } from '../../../../hooks/useMe';
 import CleanupPolicyCard from './CleanupPolicyCard';
+import StaleSyncPolicyCard from './StaleSyncPolicyCard';
 
 const RetentionPolicyCard = ({ title, description, targetType, localData, setLocalData, originalData }) => {
   const [errorMsg, setErrorMsg] = useState(null);
@@ -118,6 +119,12 @@ const PlatformSettings = () => {
             enabled: serverData.retention?.posts?.enabled ?? false,
             retentionDays: serverData.retention?.posts?.retentionDays ?? 90,
           },
+        },
+        sync: {
+          staleRun: {
+            enabled: serverData.sync?.staleRun?.enabled ?? true,
+            timeoutMinutes: serverData.sync?.staleRun?.timeoutMinutes ?? 30,
+          }
         }
       });
     }
@@ -154,21 +161,29 @@ const PlatformSettings = () => {
       retention: {
         syncHistory: {
           enabled: Boolean(localData.retention.syncHistory.enabled),
-          retentionDays: parseInt(localData.retention.syncHistory.retentionDays, 10),
+          retentionDays: Number(localData.retention.syncHistory.retentionDays),
         },
         posts: {
           enabled: Boolean(localData.retention.posts.enabled),
-          retentionDays: parseInt(localData.retention.posts.retentionDays, 10),
+          retentionDays: Number(localData.retention.posts.retentionDays),
         },
+      },
+      sync: {
+        staleRun: {
+          enabled: Boolean(localData.sync.staleRun.enabled),
+          timeoutMinutes: Number(localData.sync.staleRun.timeoutMinutes),
+        }
       }
     };
   };
 
   const isFormValid = () => {
-    const s = parseInt(localData.retention.syncHistory.retentionDays, 10);
-    const p = parseInt(localData.retention.posts.retentionDays, 10);
+    const s = Number(localData.retention.syncHistory.retentionDays);
+    const p = Number(localData.retention.posts.retentionDays);
+    const t = Number(localData.sync.staleRun.timeoutMinutes);
     return Number.isInteger(s) && s >= 1 && s <= 3650 &&
-           Number.isInteger(p) && p >= 1 && p <= 3650;
+           Number.isInteger(p) && p >= 1 && p <= 3650 &&
+           Number.isInteger(t) && t >= 5 && t <= 1440;
   };
 
   // Derive original normalized data to detect dirtiness safely
@@ -181,6 +196,12 @@ const PlatformSettings = () => {
       posts: {
         enabled: serverData.retention?.posts?.enabled ?? false,
         retentionDays: serverData.retention?.posts?.retentionDays ?? 90,
+      }
+    },
+    sync: {
+      staleRun: {
+        enabled: serverData.sync?.staleRun?.enabled ?? true,
+        timeoutMinutes: serverData.sync?.staleRun?.timeoutMinutes ?? 30,
       }
     }
   };
@@ -233,6 +254,13 @@ const PlatformSettings = () => {
           localData={localData}
           setLocalData={setLocalData}
           originalData={originalData}
+        />
+
+        <StaleSyncPolicyCard 
+          localData={localData}
+          setLocalData={setLocalData}
+          originalData={originalData}
+          isSettingsDirty={isDirty}
         />
       </div>
 
