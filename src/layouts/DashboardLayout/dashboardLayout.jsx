@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
-import { Users, Hash, Settings2, History } from 'lucide-react';
+import { Users, Hash, Settings2, History, Settings } from 'lucide-react';
 import LoadingState from '../../components/common/LoadingState';
 import { useMe } from '../../hooks/useMe';
 
@@ -177,6 +177,12 @@ const DashboardLayout = () => {
                     <NavLink to="/dashboard/account-manager" className={navClass}>
                       <Settings2 className="w-5 h-5" />
                       <span className="font-semibold">Account Manager</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/dashboard/settings/platform" className={navClass}>
+                      <Settings className="w-5 h-5" />
+                      <span className="font-semibold">Platform Settings</span>
                     </NavLink>
                   </li>
                 </>
