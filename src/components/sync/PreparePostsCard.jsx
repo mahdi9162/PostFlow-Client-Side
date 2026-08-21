@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { getTodayDateBd } from '../../utils/getTodayDateBd';
 import { getTomorrowDateBd } from '../../utils/getTomorrowDateBd';
+import LatestSyncCard from './LatestSyncCard';
 
 const PreparePostsCard = () => {
   const [targetDate, setTargetDate] = useState(getTodayDateBd());
   const axiosSecure = useAxiosSecure();
+
+  const queryClient = useQueryClient();
 
   const syncMutation = useMutation({
     mutationFn: async (dateToSync) => {
       const response = await axiosSecure.post('/api/sync/prepare', { targetDate: dateToSync });
       return response.data;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['latestSync'] });
+    }
   });
 
   const handleSync = () => {
@@ -88,6 +94,8 @@ const PreparePostsCard = () => {
             </div>
           )}
         </div>
+
+        <LatestSyncCard />
       </div>
     </div>
   );
