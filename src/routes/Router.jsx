@@ -19,6 +19,7 @@ import AccountManager from '../pages/dashboard/admin/accountManager/AccountManag
 import PlatformSettings from '../pages/dashboard/admin/platformSettings/PlatformSettings';
 import SyncHistory from '../pages/dashboard/syncHistory/SyncHistory';
 import SyncRunDetails from '../pages/dashboard/syncHistory/SyncRunDetails';
+import AiSettings from '../pages/dashboard/admin/aiSettings/AiSettings';
 
 export const router = createBrowserRouter([
   {
@@ -120,6 +121,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <PlatformSettings />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: '/dashboard/settings/ai',
+        element: (
+          <PrivateRoute>
+            <AiSettings />
           </PrivateRoute>
         ),
       },
