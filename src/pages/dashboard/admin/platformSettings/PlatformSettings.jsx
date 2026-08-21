@@ -3,6 +3,7 @@ import { Settings, Save, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usePlatformSettings } from '../../../../hooks/usePlatformSettings';
 import { useMe } from '../../../../hooks/useMe';
+import CleanupPolicyCard from './CleanupPolicyCard';
 
 const RetentionPolicyCard = ({ title, description, targetType, localData, setLocalData, originalData }) => {
   const [errorMsg, setErrorMsg] = useState(null);
@@ -232,6 +233,32 @@ const PlatformSettings = () => {
           localData={localData}
           setLocalData={setLocalData}
           originalData={originalData}
+        />
+      </div>
+
+      {/* Data Cleanup Section */}
+      <div className="flex flex-col gap-2 border-b border-base-200 pb-5 mt-10">
+        <h2 className="text-xl font-semibold text-base-content">Data Cleanup</h2>
+        <p className="text-sm text-base-content/60">
+          Manually preview and run the currently saved retention policies.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CleanupPolicyCard 
+          title="Sync History Cleanup"
+          description="Preview and remove finalized sync history older than the configured retention period."
+          targetType="syncHistory"
+          isRetentionDirty={isDirty}
+          isRetentionEnabled={originalData.retention.syncHistory.enabled}
+        />
+
+        <CleanupPolicyCard 
+          title="Posted Posts Cleanup"
+          description="Preview and remove posted PostFlow records older than the configured retention period."
+          targetType="posts"
+          isRetentionDirty={isDirty}
+          isRetentionEnabled={originalData.retention.posts.enabled}
         />
       </div>
 
