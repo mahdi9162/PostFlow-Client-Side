@@ -1,0 +1,261 @@
+import React, { useState } from 'react';
+import { format } from 'date-fns';
+import { Search, Filter, History, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { useSyncHistory } from '../../../hooks/useSyncHistory';
+import { useMe } from '../../../hooks/useMe';
+
+const formatDuration = (start, end) => {
+  if (!start || !end) return '—';
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (ms < 0) return '—';
+  const seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSecs = seconds % 60;
+  return `${minutes}m ${remainingSecs}s`;
+};
+
+const SyncStatusBadge = ({ status }) => {
+  switch (status) {
+    case 'running':
+      return <span className="badge badge-primary">Running</span>;
+    case 'completed':
+      return <span className="badge badge-success text-white">Completed</span>;
+    case 'partial_success':
+      return <span className="badge badge-warning text-white">Partial Success</span>;
+    case 'failed':
+      return <span className="badge badge-error text-white">Failed</span>;
+    case 'incomplete':
+      return <span className="badge badge-ghost border-warning/50 text-warning">Incomplete</span>;
+    default:
+      return <span className="badge badge-ghost">{status}</span>;
+  }
+};
+
+const SyncHistory = () => {
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  
+  const { runs, pagination, isLoading, isError } = useSyncHistory(page, limit);
+  const { isAdmin, isCreator } = useMe();
+
+  if (!isAdmin && !isCreator) {
+    return <div className="p-6 text-center text-error">You do not have permission to view sync history.</div>;
+  }
+
+  // Calculate page-level metrics
+  const pageCompleted = runs.filter((r) => r.status === 'completed').length;
+  const pagePartial = runs.filter((r) => r.status === 'partial_success').length;
+  const pageFailed = runs.filter((r) => r.status === 'failed' || r.status === 'incomplete').length;
+
+  return (
+    <div className="w-full space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold text-base-content flex items-center gap-2">
+          <History className="w-6 h-6 text-primary" />
+          Sync History
+        </h1>
+        <p className="text-sm text-base-content/60">
+          Track PostFlow automation runs and review previous sync results.
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-base-content/60">Total Runs</p>
+            <History className="w-5 h-5 text-base-content/40" />
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-base-content">
+            {isLoading ? '—' : pagination.totalCount}
+          </div>
+          <p className="mt-1 text-xs text-base-content/40">All time</p>
+        </div>
+
+        <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-base-content/60">Completed</p>
+            <CheckCircle2 className="w-5 h-5 text-success/70" />
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-base-content">
+            {isLoading ? '—' : pageCompleted}
+          </div>
+          <p className="mt-1 text-xs text-base-content/40">(This Page)</p>
+        </div>
+
+        <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-base-content/60">Partial Success</p>
+            <AlertCircle className="w-5 h-5 text-warning/70" />
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-base-content">
+            {isLoading ? '—' : pagePartial}
+          </div>
+          <p className="mt-1 text-xs text-base-content/40">(This Page)</p>
+        </div>
+
+        <div className="rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-base-content/60">Failed / Incomplete</p>
+            <XCircle className="w-5 h-5 text-error/70" />
+          </div>
+          <div className="mt-3 text-3xl font-semibold text-base-content">
+            {isLoading ? '—' : pageFailed}
+          </div>
+          <p className="mt-1 text-xs text-base-content/40">(This Page)</p>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-base-content/40" />
+          <input
+            type="text"
+            placeholder="Search runs... (Unsupported)"
+            disabled
+            className="input input-bordered w-full pl-9 h-10 rounded-xl bg-base-100 opacity-50 cursor-not-allowed text-sm"
+          />
+        </div>
+        <button disabled className="btn btn-outline h-10 min-h-0 rounded-xl px-4 flex gap-2 opacity-50">
+          <Filter className="w-4 h-4" />
+          Filters
+        </button>
+      </div>
+
+      {/* Main Table Content */}
+      <div className="rounded-2xl border border-base-200 bg-base-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="overflow-x-auto w-full">
+          <table className="table table-md w-full">
+            <thead className="bg-base-200/50">
+              <tr>
+                <th>Target Date</th>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Duration</th>
+                <th className="text-right">Candidates</th>
+                <th className="text-right">Created</th>
+                <th className="text-right">Duplicates</th>
+                <th className="text-right">Skipped</th>
+                <th className="text-right">Failed</th>
+                <th className="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading && (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`skel-${i}`}>
+                    <td colSpan={10}>
+                      <div className="h-10 bg-base-200 animate-pulse rounded-lg w-full" />
+                    </td>
+                  </tr>
+                ))
+              )}
+
+              {isError && (
+                <tr>
+                  <td colSpan={10} className="text-center py-8">
+                    <div className="text-error flex flex-col items-center gap-2">
+                      <AlertCircle className="w-6 h-6" />
+                      Unable to load sync history.
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && !isError && runs.length === 0 && (
+                <tr>
+                  <td colSpan={10} className="text-center py-16">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex flex-col items-center justify-center text-primary">
+                        <History className="w-8 h-8" />
+                      </div>
+                      <p className="text-base font-semibold text-base-content mt-2">No sync history yet.</p>
+                      <p className="text-sm text-base-content/60 max-w-sm">
+                        Run Prepare Posts from the dashboard to create your first automation record.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && runs.map((run) => {
+                const isRunning = run.status === 'running';
+                const hasResult = !!run.result;
+
+                return (
+                  <tr key={run._id} className="hover hover:bg-base-200/20 transition-colors">
+                    <td className="font-medium">
+                      {run.targetDate ? format(new Date(run.targetDate), 'MMM d, yyyy') : '—'}
+                    </td>
+                    <td>
+                      <SyncStatusBadge status={run.status} />
+                    </td>
+                    <td className="text-base-content/70">
+                      {run.createdAt ? format(new Date(run.createdAt), 'MMM d, yyyy HH:mm') : '—'}
+                    </td>
+                    <td className="text-base-content/70">
+                      {isRunning ? 'Running' : formatDuration(run.createdAt, run.completedAt)}
+                    </td>
+                    <td className="text-right tabular-nums text-base-content/80">
+                      {hasResult ? run.result.totalCandidates ?? '—' : '—'}
+                    </td>
+                    <td className="text-right tabular-nums text-base-content/80">
+                      {hasResult ? run.result.created ?? '—' : '—'}
+                    </td>
+                    <td className="text-right tabular-nums text-base-content/80">
+                      {hasResult ? run.result.skippedDuplicates ?? '—' : '—'}
+                    </td>
+                    <td className="text-right tabular-nums text-base-content/80">
+                      {hasResult ? run.result.qualitySkipped ?? '—' : '—'}
+                    </td>
+                    <td className="text-right tabular-nums text-base-content/80">
+                      {hasResult ? run.result.failed ?? '—' : '—'}
+                    </td>
+                    <td className="text-center">
+                      <button 
+                        disabled 
+                        className="btn btn-sm btn-ghost text-primary opacity-50" 
+                        title="View Details (Coming in Phase 2)"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="border-t border-base-200 px-4 py-3 flex items-center justify-between bg-base-100">
+          <div className="text-sm text-base-content/60">
+            Showing page <span className="font-medium text-base-content">{pagination.page}</span> of <span className="font-medium text-base-content">{pagination.totalPages}</span>
+          </div>
+          <div className="join">
+            <button
+              className="join-item btn btn-sm"
+              disabled={page === 1 || isLoading}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+            >
+              «
+            </button>
+            <button className="join-item btn btn-sm cursor-default">Page {page}</button>
+            <button
+              className="join-item btn btn-sm"
+              disabled={page >= pagination.totalPages || isLoading}
+              onClick={() => setPage(p => p + 1)}
+            >
+              »
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SyncHistory;

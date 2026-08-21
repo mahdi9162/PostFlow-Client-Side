@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
 import { IoCreateOutline, IoHomeOutline } from 'react-icons/io5';
-import { Users, Hash, Settings2 } from 'lucide-react';
+import { Users, Hash, Settings2, History } from 'lucide-react';
 import LoadingState from '../../components/common/LoadingState';
 import { useMe } from '../../hooks/useMe';
 
@@ -159,6 +159,12 @@ const DashboardLayout = () => {
                     <NavLink to="/dashboard/AccessReq" className={navClass}>
                       <Users className="w-5 h-5" />
                       <span className="font-semibold">Access Requests </span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/dashboard/sync-history" className={navClass}>
+                      <History className="w-5 h-5" />
+                      <span className="font-semibold">Sync History</span>
                     </NavLink>
                   </li>
                   <li>
