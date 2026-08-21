@@ -17,6 +17,7 @@ import AccessReq from '../pages/dashboard/admin/AccessReq';
 import AccountHashtagsManager from '../pages/dashboard/admin/AccountHashtagsManager';
 import AccountManager from '../pages/dashboard/admin/accountManager/AccountManager';
 import SyncHistory from '../pages/dashboard/syncHistory/SyncHistory';
+import SyncRunDetails from '../pages/dashboard/syncHistory/SyncRunDetails';
 
 export const router = createBrowserRouter([
   {
@@ -102,6 +103,14 @@ export const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <SyncHistory />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: '/dashboard/sync-history/:syncId',
+        element: (
+          <PrivateRoute>
+            <SyncRunDetails />
           </PrivateRoute>
         ),
       },

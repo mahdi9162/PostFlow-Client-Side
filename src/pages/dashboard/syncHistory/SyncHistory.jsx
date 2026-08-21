@@ -4,33 +4,9 @@ import { Search, Filter, History, CheckCircle2, AlertCircle, XCircle } from 'luc
 import { useSyncHistory } from '../../../hooks/useSyncHistory';
 import { useMe } from '../../../hooks/useMe';
 
-const formatDuration = (start, end) => {
-  if (!start || !end) return '—';
-  const ms = new Date(end).getTime() - new Date(start).getTime();
-  if (ms < 0) return '—';
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSecs = seconds % 60;
-  return `${minutes}m ${remainingSecs}s`;
-};
-
-const SyncStatusBadge = ({ status }) => {
-  switch (status) {
-    case 'running':
-      return <span className="badge badge-primary">Running</span>;
-    case 'completed':
-      return <span className="badge badge-success text-white">Completed</span>;
-    case 'partial_success':
-      return <span className="badge badge-warning text-white">Partial Success</span>;
-    case 'failed':
-      return <span className="badge badge-error text-white">Failed</span>;
-    case 'incomplete':
-      return <span className="badge badge-ghost border-warning/50 text-warning">Incomplete</span>;
-    default:
-      return <span className="badge badge-ghost">{status}</span>;
-  }
-};
+import { Link } from 'react-router';
+import SyncStatusBadge from '../../../components/sync/SyncStatusBadge';
+import { formatDuration } from '../../../utils/syncHelpers';
 
 const SyncHistory = () => {
   const [page, setPage] = useState(1);
@@ -215,13 +191,13 @@ const SyncHistory = () => {
                       {hasResult ? run.result.failed ?? '—' : '—'}
                     </td>
                     <td className="text-center">
-                      <button 
-                        disabled 
-                        className="btn btn-sm btn-ghost text-primary opacity-50" 
-                        title="View Details (Coming in Phase 2)"
+                      <Link 
+                        to={`/dashboard/sync-history/${run._id}`}
+                        className="btn btn-sm btn-ghost text-primary hover:bg-primary/10" 
+                        title="View Details"
                       >
                         View Details
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 );
