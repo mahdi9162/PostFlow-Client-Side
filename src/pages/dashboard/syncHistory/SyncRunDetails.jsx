@@ -1,7 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+/**
+ * @typedef {Object} FailedSyncAttempt
+ * @property {'vision' | 'caption'} stage
+ * @property {'groq' | 'gemini'} provider
+ * @property {string} model
+ * @property {boolean} success
+ * @property {number | null} [statusCode]
+ * @property {string} reason
+ * @property {string} [message]
+ */
+
+/**
+ * @typedef {Object} FailedSyncItem
+ * @property {string} account
+ * @property {string} driveFileId
+ * @property {string} [fileName]
+ * @property {string} [mimeType]
+ * @property {string} [fingerprint]
+ * @property {'duplicate-check' | 'vision' | 'caption' | 'create-post' | 'workflow'} stage
+ * @property {string} reason
+ * @property {string} message
+ * @property {FailedSyncAttempt[]} [attempts]
+ */
 import { useParams, Link } from 'react-router';
 import { format } from 'date-fns';
-import { ArrowLeft, Clock, Calendar, CheckCircle2, AlertCircle, XCircle, FileText, Settings2, Users } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, CheckCircle2, AlertCircle, XCircle, FileText, Settings2, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSyncHistoryDetails } from '../../../hooks/useSyncHistoryDetails';
 import SyncStatusBadge from '../../../components/sync/SyncStatusBadge';
 import { formatDuration } from '../../../utils/syncHelpers';
@@ -20,6 +44,24 @@ const getFallbackMessage = (status) => {
 const SyncRunDetails = () => {
   const { syncId } = useParams();
   const { data, isLoading, isError, error } = useSyncHistoryDetails(syncId);
+  const [expandedItems, setExpandedItems] = useState(new Set());
+
+  const toggleExpand = (idx) => {
+    const next = new Set(expandedItems);
+    if (next.has(idx)) next.delete(idx);
+    else next.add(idx);
+    setExpandedItems(next);
+  };
+
+  const expandAll = () => {
+    if (data?.result?.failedItems) {
+      setExpandedItems(new Set(data.result.failedItems.map((_, i) => i)));
+    }
+  };
+
+  const collapseAll = () => {
+    setExpandedItems(new Set());
+  };
 
   if (isLoading) {
     return (
@@ -178,6 +220,101 @@ const SyncRunDetails = () => {
           </table>
         </div>
       </div>
+
+      {/* Failed Items */}
+      {hasResult && result.failed > 0 && result.failedItems && result.failedItems.length > 0 && (
+        <div className="rounded-2xl border border-error/20 bg-base-100 shadow-sm overflow-hidden mt-6">
+          <div className="p-4 border-b border-error/20 bg-error/5 flex flex-wrap gap-3 items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-error" />
+              <h2 className="text-lg font-semibold text-error">Failed Items ({result.failedItems.length})</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={expandAll} className="btn btn-xs btn-ghost text-base-content/70 font-medium">Expand all</button>
+              <button onClick={collapseAll} className="btn btn-xs btn-ghost text-base-content/70 font-medium">Collapse all</button>
+            </div>
+          </div>
+          <div className="p-4 flex flex-col gap-3">
+            {result.failedItems.map((item, idx) => {
+              const isExpanded = expandedItems.has(idx);
+              const latestAttempt = item.attempts && item.attempts.length > 0 ? item.attempts[item.attempts.length - 1] : null;
+
+              return (
+                <div key={idx} className={`p-4 rounded-xl border border-base-200 bg-base-100 flex flex-col transition-all shadow-sm ${isExpanded ? 'gap-4' : 'gap-3 hover:border-base-300'}`}>
+                  {/* Compact Header */}
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
+                    <div className="flex-1 cursor-pointer" onClick={() => toggleExpand(idx)}>
+                      <h3 className="text-base font-semibold text-base-content break-all">{item.fileName || 'Unknown file'}</h3>
+                      <p className="text-sm text-base-content/70 mt-1">
+                        <span className="font-medium">{item.account}</span> &bull; <span className="capitalize">{item.stage}</span> &bull; {item.reason}
+                      </p>
+                      
+                      {!isExpanded && latestAttempt && (
+                        <p className="text-xs text-base-content/60 mt-1">
+                          <span className="capitalize">{latestAttempt.provider}</span> / {latestAttempt.model} &rarr; {latestAttempt.statusCode ? latestAttempt.statusCode : latestAttempt.reason}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+                      {item.driveFileId && (
+                        <a
+                          href={`https://drive.google.com/file/d/${item.driveFileId}/view`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-outline whitespace-nowrap"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Open Drive
+                        </a>
+                      )}
+                      <button 
+                        onClick={() => toggleExpand(idx)}
+                        className="btn btn-sm btn-ghost gap-1"
+                      >
+                        {isExpanded ? (
+                          <>
+                            View less
+                            <ChevronUp className="w-4 h-4" />
+                          </>
+                        ) : (
+                          <>
+                            View details
+                            <ChevronDown className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="flex flex-col gap-4 pt-3 border-t border-base-200 mt-1">
+                      <div className="bg-base-200/50 p-3 rounded-lg text-sm text-base-content/80 whitespace-pre-wrap break-words">
+                        <p className="font-semibold mb-1 text-base-content">Message:</p>
+                        {item.message}
+                      </div>
+
+                      {item.attempts && item.attempts.length > 0 && (
+                        <div className="mt-1">
+                          <p className="font-semibold text-sm text-base-content mb-2">Attempts:</p>
+                          <ul className="space-y-1">
+                            {item.attempts.map((attempt, i) => (
+                              <li key={i} className="text-sm text-base-content/80 flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-base-content/40"></span>
+                                <span className="capitalize">{attempt.provider}</span> / {attempt.model} &rarr; {attempt.statusCode ? attempt.statusCode : attempt.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Technical Details */}
       <div className="collapse collapse-arrow border border-base-200 bg-base-100 rounded-xl">
