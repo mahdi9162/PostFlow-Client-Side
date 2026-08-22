@@ -23,9 +23,11 @@ import React, { useState } from 'react';
  * @property {string} message
  * @property {FailedSyncAttempt[]} [attempts]
  */
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { format } from 'date-fns';
-import { ArrowLeft, Clock, Calendar, CheckCircle2, AlertCircle, XCircle, FileText, Settings2, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, CheckCircle2, AlertCircle, XCircle, FileText, Settings2, Users, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import toast from 'react-hot-toast';
+import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { useSyncHistoryDetails } from '../../../hooks/useSyncHistoryDetails';
 import SyncStatusBadge from '../../../components/sync/SyncStatusBadge';
 import { formatDuration } from '../../../utils/syncHelpers';
@@ -43,8 +45,26 @@ const getFallbackMessage = (status) => {
 
 const SyncRunDetails = () => {
   const { syncId } = useParams();
+  const navigate = useNavigate();
+  const axiosSecure = useAxiosSecure();
   const { data, isLoading, isError, error } = useSyncHistoryDetails(syncId);
   const [expandedItems, setExpandedItems] = useState(new Set());
+  const [isRetrying, setIsRetrying] = useState(false);
+
+  const handleRetryFailed = async () => {
+    try {
+      setIsRetrying(true);
+      const res = await axiosSecure.post(`/api/sync/${syncId}/retry-failed`);
+      toast.success('Retry sync started');
+      if (res.data && res.data.syncId) {
+        navigate(`/dashboard/sync-history/${res.data.syncId}`);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to start retry sync');
+    } finally {
+      setIsRetrying(false);
+    }
+  };
 
   const toggleExpand = (idx) => {
     const next = new Set(expandedItems);
@@ -125,6 +145,14 @@ const SyncRunDetails = () => {
           </div>
           <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-base-content/60">
             <span className="flex items-center gap-1.5"><FileText className="w-4 h-4" /> ID: {syncId}</span>
+            {data.retryOf && (
+              <span className="flex items-center gap-1.5 text-warning font-medium">
+                <RefreshCw className="w-4 h-4" /> Retry of: 
+                <Link to={`/dashboard/sync-history/${data.retryOf}`} className="underline hover:text-warning/80">
+                  {data.retryOf}
+                </Link>
+              </span>
+            )}
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Target: {targetDate ? format(new Date(targetDate), 'MMM d, yyyy') : '—'}</span>
             {createdAt && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Started: {format(new Date(createdAt), 'HH:mm:ss')}</span>}
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Completed: {completedAt ? format(new Date(completedAt), 'HH:mm:ss') : (isRunning ? 'Running' : '—')}</span>
@@ -230,6 +258,35 @@ const SyncRunDetails = () => {
               <h2 className="text-lg font-semibold text-error">Failed Items ({result.failedItems.length})</h2>
             </div>
             <div className="flex items-center gap-2">
+              {!isRunning && (
+                data.retryRunId ? (
+                  <Link 
+                    to={`/dashboard/sync-history/${data.retryRunId}`}
+                    className="btn btn-sm btn-outline btn-warning font-medium"
+                  >
+                    Retried <RefreshCw className="w-3.5 h-3.5 ml-1" />
+                  </Link>
+                ) : (
+                  <button 
+                    onClick={handleRetryFailed} 
+                    disabled={isRetrying}
+                    className="btn btn-sm btn-outline btn-error font-medium"
+                  >
+                    {isRetrying ? (
+                      <>
+                        <span className="loading loading-spinner loading-xs"></span>
+                        Retrying...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Retry All Failed
+                      </>
+                    )}
+                  </button>
+                )
+              )}
+              {!isRunning && <div className="divider divider-horizontal mx-0 w-1"></div>}
               <button onClick={expandAll} className="btn btn-xs btn-ghost text-base-content/70 font-medium">Expand all</button>
               <button onClick={collapseAll} className="btn btn-xs btn-ghost text-base-content/70 font-medium">Collapse all</button>
             </div>
