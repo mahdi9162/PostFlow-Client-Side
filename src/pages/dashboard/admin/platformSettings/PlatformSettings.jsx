@@ -5,6 +5,8 @@ import { usePlatformSettings } from '../../../../hooks/usePlatformSettings';
 import { useMe } from '../../../../hooks/useMe';
 import CleanupPolicyCard from './CleanupPolicyCard';
 import StaleSyncPolicyCard from './StaleSyncPolicyCard';
+import LatestMaintenanceCard from './LatestMaintenanceCard';
+import DriveAutomationPolicyCard from './DriveAutomationPolicyCard';
 
 const RetentionPolicyCard = ({ title, description, targetType, localData, setLocalData, originalData }) => {
   const [errorMsg, setErrorMsg] = useState(null);
@@ -125,6 +127,12 @@ const PlatformSettings = () => {
             enabled: serverData.sync?.staleRun?.enabled ?? true,
             timeoutMinutes: serverData.sync?.staleRun?.timeoutMinutes ?? 30,
           }
+        },
+        driveAutomation: {
+          enabled: serverData.driveAutomation?.enabled ?? true,
+          prepareDaysAhead: serverData.driveAutomation?.prepareDaysAhead ?? 30,
+          cleanupEnabled: serverData.driveAutomation?.cleanupEnabled ?? true,
+          deleteFoldersOlderThanDays: serverData.driveAutomation?.deleteFoldersOlderThanDays ?? 7,
         }
       });
     }
@@ -173,6 +181,12 @@ const PlatformSettings = () => {
           enabled: Boolean(localData.sync.staleRun.enabled),
           timeoutMinutes: Number(localData.sync.staleRun.timeoutMinutes),
         }
+      },
+      driveAutomation: {
+        enabled: Boolean(localData.driveAutomation.enabled),
+        prepareDaysAhead: Number(localData.driveAutomation.prepareDaysAhead),
+        cleanupEnabled: Boolean(localData.driveAutomation.cleanupEnabled),
+        deleteFoldersOlderThanDays: Number(localData.driveAutomation.deleteFoldersOlderThanDays),
       }
     };
   };
@@ -181,9 +195,13 @@ const PlatformSettings = () => {
     const s = Number(localData.retention.syncHistory.retentionDays);
     const p = Number(localData.retention.posts.retentionDays);
     const t = Number(localData.sync.staleRun.timeoutMinutes);
+    const pd = Number(localData.driveAutomation.prepareDaysAhead);
+    const cd = Number(localData.driveAutomation.deleteFoldersOlderThanDays);
     return Number.isInteger(s) && s >= 1 && s <= 3650 &&
            Number.isInteger(p) && p >= 1 && p <= 3650 &&
-           Number.isInteger(t) && t >= 5 && t <= 1440;
+           Number.isInteger(t) && t >= 5 && t <= 1440 &&
+           Number.isInteger(pd) && pd >= 1 && pd <= 90 &&
+           Number.isInteger(cd) && cd >= 1 && cd <= 90;
   };
 
   // Derive original normalized data to detect dirtiness safely
@@ -203,6 +221,12 @@ const PlatformSettings = () => {
         enabled: serverData.sync?.staleRun?.enabled ?? true,
         timeoutMinutes: serverData.sync?.staleRun?.timeoutMinutes ?? 30,
       }
+    },
+    driveAutomation: {
+      enabled: serverData.driveAutomation?.enabled ?? true,
+      prepareDaysAhead: serverData.driveAutomation?.prepareDaysAhead ?? 30,
+      cleanupEnabled: serverData.driveAutomation?.cleanupEnabled ?? true,
+      deleteFoldersOlderThanDays: serverData.driveAutomation?.deleteFoldersOlderThanDays ?? 7,
     }
   };
 
@@ -288,6 +312,23 @@ const PlatformSettings = () => {
           isRetentionDirty={isDirty}
           isRetentionEnabled={originalData.retention.posts.enabled}
         />
+      </div>
+
+      {/* Drive Automation Section */}
+      <div className="flex flex-col gap-2 border-b border-base-200 pb-5 mt-10">
+        <h2 className="text-xl font-semibold text-base-content">Drive Automation</h2>
+        <p className="text-sm text-base-content/60">
+          Settings and logs for automated Google Drive folder maintenance.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <DriveAutomationPolicyCard 
+          localData={localData}
+          setLocalData={setLocalData}
+          originalData={originalData}
+        />
+        <LatestMaintenanceCard />
       </div>
 
       {/* Footer Save Bar */}
