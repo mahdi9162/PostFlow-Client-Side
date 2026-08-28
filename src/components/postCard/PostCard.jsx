@@ -16,6 +16,7 @@ import LoadingState from '../common/LoadingState';
 import ErrorState from '../common/ErrorState';
 import StatusBadge from '../common/StatusBadge';
 import DeleteConfirmModal from '../common/DeleteConfirmModal';
+import MediaPreview from './MediaPreview';
 
 const PostCard = ({ account }) => {
   const axiosSecure = useAxiosSecure();
@@ -354,26 +355,30 @@ const PostCard = ({ account }) => {
               </div>
             ) : (
               <div className="flex flex-col gap-6">
-                {posts.map((post) => {
+                {posts.map((post, index) => {
+                  const reviewNumber = index + 1;
                   const isPostLoading = statusLoadingIds.has(post._id);
                   const isPending = post.status === 'pending';
                   
                   return (
                     <div key={post._id} className="rounded-3xl bg-base-100 p-5 md:p-7 shadow-sm ring-1 ring-base-200">
                       
+                      {/* Post Card Media Preview */}
+                      <MediaPreview post={post} reviewNumber={reviewNumber} />
+
                       {/* Post Card Top: Context */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-4">
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                           <StatusBadge status={post.status} />
                           <span className="text-xs font-semibold text-base-content/50 px-2 py-1 bg-base-200/50 rounded-lg">
                             {capitalizeFirstLetter(post.scheduledDate ? new Date(post.scheduledDate).toLocaleDateString('en-US', { weekday: 'long' }) : (post.day || 'N/A'))}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                           {isAdmin && (
                             <button
                               onClick={() => openDeleteModal(post._id)}
-                              className="btn btn-sm btn-ghost bg-error/5 text-error hover:bg-error hover:text-white rounded-lg px-4 font-semibold"
+                              className="btn btn-sm btn-ghost bg-error/5 text-error hover:bg-error hover:text-white rounded-lg px-3 sm:px-4 font-semibold"
                               aria-label="Delete"
                               title="Delete"
                             >
@@ -383,7 +388,7 @@ const PostCard = ({ account }) => {
                           {(isAdmin || isCreator) && (
                             <button
                               onClick={() => openEditModal(post)}
-                              className="btn btn-sm btn-ghost bg-base-200/50 hover:bg-base-200 rounded-lg px-4 font-semibold"
+                              className="btn btn-sm btn-ghost bg-base-200/50 hover:bg-base-200 rounded-lg px-3 sm:px-4 font-semibold"
                               aria-label="Edit"
                               title="Edit"
                             >
@@ -403,36 +408,38 @@ const PostCard = ({ account }) => {
                       </div>
 
                       {/* Post Card Bottom: Actions */}
-                      <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                        <CopyButton post={post} className="btn btn-primary flex-1 w-full sm:w-auto rounded-xl" />
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-2">
+                        <CopyButton post={post} className="btn btn-primary w-full min-h-11 h-auto rounded-xl text-xs md:text-sm font-semibold leading-tight" />
 
                         {post?.media?.driveFileId ? (
                           <button
                             onClick={() => handleDownloadMedia(post)}
                             disabled={downloadingIds.has(post._id)}
-                            className={`btn btn-secondary flex-1 w-full sm:w-auto rounded-xl font-semibold text-secondary-content shadow-sm transition-all border-none ${
+                            className={`btn btn-secondary w-full min-h-11 h-auto rounded-xl font-semibold text-secondary-content shadow-sm transition-all border-none text-xs md:text-sm leading-tight px-2 ${
                               downloadingIds.has(post._id) ? 'opacity-90 cursor-not-allowed' : 'hover:scale-[1.01] active:scale-[0.99]'
                             }`}
                           >
                             {downloadingIds.has(post._id) ? (
-                              <>
-                                <span className="loading loading-spinner loading-sm text-current"></span>
-                                <span>Downloading...</span>
-                              </>
+                              <div className="flex items-center gap-1.5">
+                                <span className="loading loading-spinner text-current"></span>
+                                <span className="text-xs md:text-sm leading-tight">Downloading...</span>
+                              </div>
                             ) : (
-                              <>
-                                <span className="text-lg leading-none mb-0.5">⇩</span>
-                                Download Media
-                              </>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs md:text-lg leading-none mb-0.5">⇩</span>
+                                <span className="text-xs md:text-sm leading-tight">Download Media</span>
+                              </div>
                             )}
                           </button>
                         ) : (
                           <button
                             disabled
-                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-base-300 bg-base-200/80 text-base-content/40 font-semibold cursor-not-allowed"
+                            className="btn w-full min-h-11 h-auto rounded-xl border border-base-300 bg-base-200/80 text-base-content/40 font-semibold cursor-not-allowed text-xs md:text-sm leading-tight px-2"
                           >
-                            <span className="text-lg leading-none mb-0.5">⇩</span>
-                            Download Media
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs md:text-lg leading-none mb-0.5">⇩</span>
+                              <span>Download Media</span>
+                            </div>
                           </button>
                         )}
 
@@ -441,18 +448,18 @@ const PostCard = ({ account }) => {
                             href={post?.driveLink || `https://drive.google.com/open?id=${post.media.driveFileId}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 font-semibold"
+                            className="btn w-full min-h-11 h-auto rounded-xl border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 font-semibold text-xs md:text-sm leading-tight px-2 flex items-center justify-center gap-1.5"
                           >
-                            <span className="text-lg leading-none mb-0.5">☁</span>
-                            Open Drive
+                            <span className="text-xs md:text-lg leading-none mb-0.5">☁</span>
+                            <span>Open Drive</span>
                           </a>
                         ) : (
                           <button
                             disabled
-                            className="btn flex-1 w-full sm:w-auto rounded-xl border border-base-300 bg-base-200 text-base-content/30 font-semibold"
+                            className="btn w-full min-h-11 h-auto rounded-xl border border-base-300 bg-base-200 text-base-content/30 font-semibold text-xs md:text-sm leading-tight px-2 flex items-center justify-center gap-1.5"
                           >
-                            <span className="text-lg leading-none mb-0.5">☁</span>
-                            Open Drive
+                            <span className="text-xs md:text-lg leading-none mb-0.5">☁</span>
+                            <span>Open Drive</span>
                           </button>
                         )}
 
@@ -460,7 +467,7 @@ const PostCard = ({ account }) => {
                         <button
                           onClick={() => handleMarkAsButton(post._id, isPending ? 'posted' : 'pending')}
                           disabled={isPostLoading}
-                          className={`btn flex-1 w-full sm:w-auto rounded-xl font-semibold border-none transition-all ${
+                          className={`btn w-full min-h-11 h-auto rounded-xl font-semibold border-none transition-all text-xs md:text-sm leading-tight px-2 ${
                             isPending 
                               ? 'bg-success text-white hover:bg-success/90 shadow-sm shadow-success/20' 
                               : 'bg-base-200 text-base-content hover:bg-base-300'
