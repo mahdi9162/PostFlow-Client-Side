@@ -7,6 +7,7 @@ import CleanupPolicyCard from './CleanupPolicyCard';
 import StaleSyncPolicyCard from './StaleSyncPolicyCard';
 import LatestMaintenanceCard from './LatestMaintenanceCard';
 import DriveAutomationPolicyCard from './DriveAutomationPolicyCard';
+import AutoSyncPolicyCard from './AutoSyncPolicyCard';
 
 const RetentionPolicyCard = ({ title, description, targetType, localData, setLocalData, originalData }) => {
   const [errorMsg, setErrorMsg] = useState(null);
@@ -133,6 +134,9 @@ const PlatformSettings = () => {
           prepareDaysAhead: serverData.driveAutomation?.prepareDaysAhead ?? 30,
           cleanupEnabled: serverData.driveAutomation?.cleanupEnabled ?? true,
           deleteFoldersOlderThanDays: serverData.driveAutomation?.deleteFoldersOlderThanDays ?? 7,
+        },
+        autoSync: {
+          enabled: serverData.autoSync?.enabled ?? false,
         }
       });
     }
@@ -187,6 +191,9 @@ const PlatformSettings = () => {
         prepareDaysAhead: Number(localData.driveAutomation.prepareDaysAhead),
         cleanupEnabled: Boolean(localData.driveAutomation.cleanupEnabled),
         deleteFoldersOlderThanDays: Number(localData.driveAutomation.deleteFoldersOlderThanDays),
+      },
+      autoSync: {
+        enabled: Boolean(localData.autoSync.enabled),
       }
     };
   };
@@ -227,6 +234,9 @@ const PlatformSettings = () => {
       prepareDaysAhead: serverData.driveAutomation?.prepareDaysAhead ?? 30,
       cleanupEnabled: serverData.driveAutomation?.cleanupEnabled ?? true,
       deleteFoldersOlderThanDays: serverData.driveAutomation?.deleteFoldersOlderThanDays ?? 7,
+    },
+    autoSync: {
+      enabled: serverData.autoSync?.enabled ?? false,
     }
   };
 
@@ -285,6 +295,12 @@ const PlatformSettings = () => {
           setLocalData={setLocalData}
           originalData={originalData}
           isSettingsDirty={isDirty}
+        />
+
+        <AutoSyncPolicyCard 
+          localData={localData}
+          setLocalData={setLocalData}
+          originalData={originalData}
         />
       </div>
 
