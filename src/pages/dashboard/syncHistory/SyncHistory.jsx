@@ -167,7 +167,12 @@ const SyncHistory = () => {
                       {run.targetDate ? format(new Date(run.targetDate), 'MMM d, yyyy') : '—'}
                     </td>
                     <td>
-                      <SyncStatusBadge status={run.status} />
+                      <div className="flex flex-col gap-1 items-start">
+                        <SyncStatusBadge status={run.status} />
+                        <span className={`badge badge-xs ${run.triggeredBy === 'system-auto-sync' ? 'badge-primary badge-outline' : 'badge-ghost'}`}>
+                          {run.triggeredBy === 'system-auto-sync' ? 'Auto' : 'Manual'}
+                        </span>
+                      </div>
                     </td>
                     <td className="text-base-content/70">
                       {run.createdAt ? format(new Date(run.createdAt), 'MMM d, yyyy HH:mm') : '—'}

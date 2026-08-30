@@ -120,7 +120,7 @@ const SyncRunDetails = () => {
 
   if (!data) return null;
 
-  const { targetDate, status, createdAt, completedAt, result } = data;
+  const { targetDate, status, createdAt, completedAt, result, triggeredBy } = data;
   const isRunning = status === 'running';
   const hasResult = !!result;
 
@@ -154,6 +154,10 @@ const SyncRunDetails = () => {
               </span>
             )}
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Target: {targetDate ? format(new Date(targetDate), 'MMM d, yyyy') : '—'}</span>
+            <span className="flex items-center gap-1.5">
+              <Settings2 className="w-4 h-4" /> 
+              Source: {triggeredBy === 'system-auto-sync' ? 'System Auto Sync' : triggeredBy || 'Manual'}
+            </span>
             {createdAt && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Started: {format(new Date(createdAt), 'HH:mm:ss')}</span>}
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Completed: {completedAt ? format(new Date(completedAt), 'HH:mm:ss') : (isRunning ? 'Running' : '—')}</span>
             <span className="flex items-center gap-1.5"><Settings2 className="w-4 h-4" /> Duration: {isRunning ? 'Running' : formatDuration(createdAt, completedAt)}</span>
@@ -383,6 +387,7 @@ const SyncRunDetails = () => {
           <div className="bg-base-200/50 p-4 rounded-lg font-mono text-xs text-base-content/70 overflow-x-auto">
             <p><strong className="text-base-content">Sync ID:</strong> {syncId}</p>
             <p><strong className="text-base-content">Backend Status:</strong> {status}</p>
+            {triggeredBy && <p><strong className="text-base-content">Triggered By:</strong> {triggeredBy}</p>}
             {hasResult && <p><strong className="text-base-content">Result Message:</strong> {result.message}</p>}
             {createdAt && <p><strong className="text-base-content">Created At:</strong> {createdAt}</p>}
             {completedAt && <p><strong className="text-base-content">Completed At:</strong> {completedAt}</p>}

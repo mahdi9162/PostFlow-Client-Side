@@ -108,6 +108,9 @@ const LatestSyncCard = () => {
               {format(new Date(targetDate), 'MMM d, yyyy')}
             </span>
           )}
+          <span className={`badge badge-sm ${run.triggeredBy === 'system-auto-sync' ? 'badge-primary badge-outline' : 'badge-ghost'}`}>
+            {run.triggeredBy === 'system-auto-sync' ? 'Auto' : 'Manual'}
+          </span>
         </div>
         {renderSummary()}
       </div>
