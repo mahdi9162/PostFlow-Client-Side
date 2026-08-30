@@ -146,7 +146,12 @@ const AccountManager = () => {
                 <tbody className="divide-y divide-base-200">
                   {accounts.map((acc) => (
                     <tr key={acc._id} className="hover:bg-base-200/10 transition-colors group">
-                      <td className="py-4 px-6 font-semibold text-base-content">{acc.displayName}</td>
+                      <td className="py-4 px-6">
+                        <div className="font-semibold text-base-content">{acc.displayName}</div>
+                        {acc.dailyPostTarget && (
+                          <div className="text-xs text-base-content/50 mt-0.5">Daily target: {acc.dailyPostTarget} posts</div>
+                        )}
+                      </td>
                       <td><span className="font-mono text-xs badge badge-ghost">{acc.slug}</span></td>
                       <td className="text-sm text-base-content/80 truncate max-w-[150px]">{acc.driveFolderName}</td>
                       <td className="text-sm font-semibold">{acc.order}</td>

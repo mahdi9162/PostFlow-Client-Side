@@ -17,6 +17,7 @@ const AccountModal = ({ modalRef, mode, account }) => {
     platform: 'instagram',
     isActive: true,
     order: 1,
+    dailyPostTarget: '',
   });
 
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
@@ -30,6 +31,7 @@ const AccountModal = ({ modalRef, mode, account }) => {
         platform: account.platform || 'instagram',
         isActive: account.isActive ?? true,
         order: account.order || 1,
+        dailyPostTarget: account.dailyPostTarget || '',
       });
       setSlugManuallyEdited(true);
     } else if (mode === 'add') {
@@ -40,6 +42,7 @@ const AccountModal = ({ modalRef, mode, account }) => {
         platform: 'instagram',
         isActive: true,
         order: 1,
+        dailyPostTarget: '',
       });
       setSlugManuallyEdited(false);
     }
@@ -76,14 +79,16 @@ const AccountModal = ({ modalRef, mode, account }) => {
         await axiosSecure.post('/api/accounts', {
           ...formData,
           slug: finalSlug,
-          order: Number(formData.order)
+          order: Number(formData.order),
+          dailyPostTarget: Number(formData.dailyPostTarget)
         });
         toast.success('Account created successfully');
       } else {
         await axiosSecure.patch(`/api/accounts/${account._id}`, {
           ...formData,
           slug: finalSlug,
-          order: Number(formData.order)
+          order: Number(formData.order),
+          dailyPostTarget: Number(formData.dailyPostTarget)
         });
         toast.success('Account updated successfully');
       }
@@ -196,6 +201,25 @@ const AccountModal = ({ modalRef, mode, account }) => {
                   onChange={(e) => setFormData({ ...formData, order: e.target.value })}
                   className="input input-bordered w-full rounded-2xl bg-base-100 focus:border-primary/60"
                 />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-semibold">Daily Post Target</span>
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  step="1"
+                  value={formData.dailyPostTarget}
+                  onChange={(e) => setFormData({ ...formData, dailyPostTarget: e.target.value })}
+                  className="input input-bordered w-full rounded-2xl bg-base-100 focus:border-primary/60"
+                  placeholder="e.g. 5"
+                />
+                <label className="label">
+                  <span className="label-text-alt text-base-content/60">Number of posts PostFlow should prepare for this account each day.</span>
+                </label>
               </div>
             </div>
 
