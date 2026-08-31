@@ -169,9 +169,16 @@ const SyncHistory = () => {
                     <td>
                       <div className="flex flex-col gap-1 items-start">
                         <SyncStatusBadge status={run.status} />
-                        <span className={`badge badge-xs ${run.triggeredBy === 'system-auto-sync' ? 'badge-primary badge-outline' : 'badge-ghost'}`}>
-                          {run.triggeredBy === 'system-auto-sync' ? 'Auto' : 'Manual'}
-                        </span>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className={`badge badge-xs ${run.triggeredBy === 'system-auto-sync' ? 'badge-primary badge-outline' : 'badge-ghost'}`}>
+                            {run.triggeredBy === 'system-auto-sync' ? 'Auto' : 'Manual'}
+                          </span>
+                          {run.result?.message === 'Sync completed with media warnings' && (
+                            <span className="badge badge-xs badge-warning badge-outline" title="Media warnings present">
+                              Media Notice
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="text-base-content/70">

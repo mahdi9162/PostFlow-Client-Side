@@ -23,6 +23,25 @@ import React, { useState } from 'react';
  * @property {string} message
  * @property {FailedSyncAttempt[]} [attempts]
  */
+
+/**
+ * @typedef {Object} AccountSyncSummary
+ * @property {number} found
+ * @property {number} created
+ * @property {number} duplicates
+ * @property {number} qualitySkipped
+ * @property {number} failed
+ * @property {number | null} [target]
+ * @property {number} [preparedBefore]
+ * @property {number | null} [remainingNeeded]
+ * @property {number} [driveFound]
+ * @property {number} [knownPreparedStillInDrive]
+ * @property {number} [newAvailable]
+ * @property {number} [selected]
+ * @property {number} [extra]
+ * @property {number} [shortage]
+ * @property {'EXTRA_MEDIA' | 'NOT_ENOUGH_MEDIA' | null} [warning]
+ */
 import { useParams, Link, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { ArrowLeft, Clock, Calendar, CheckCircle2, AlertCircle, XCircle, FileText, Settings2, Users, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
@@ -43,12 +62,31 @@ const getFallbackMessage = (status) => {
   }
 };
 
+const formatSource = (triggeredBy) => {
+  if (triggeredBy === 'system-auto-sync') return 'Automatic Sync';
+  if (!triggeredBy) return 'Manual Sync';
+  return `Manual Sync (${triggeredBy})`;
+};
+
+const formatStatusLabel = (status) => {
+  switch (status) {
+    case 'completed': return 'Completed';
+    case 'partial_success': return 'Partial Success';
+    case 'failed': return 'Failed';
+    case 'incomplete': return 'Incomplete';
+    case 'running': return 'Running';
+    default: return status || 'Unknown';
+  }
+};
+
 const SyncRunDetails = () => {
   const { syncId } = useParams();
   const navigate = useNavigate();
   const axiosSecure = useAxiosSecure();
   const { data, isLoading, isError, error } = useSyncHistoryDetails(syncId);
   const [expandedItems, setExpandedItems] = useState(new Set());
+  const [expandedAccounts, setExpandedAccounts] = useState(new Set());
+  const [isTechnicalExpanded, setIsTechnicalExpanded] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetryFailed = async () => {
@@ -81,6 +119,23 @@ const SyncRunDetails = () => {
 
   const collapseAll = () => {
     setExpandedItems(new Set());
+  };
+
+  const toggleAccountExpand = (accountName) => {
+    const next = new Set(expandedAccounts);
+    if (next.has(accountName)) next.delete(accountName);
+    else next.add(accountName);
+    setExpandedAccounts(next);
+  };
+
+  const expandAllAccounts = () => {
+    if (data?.result?.accounts) {
+      setExpandedAccounts(new Set(Object.keys(data.result.accounts)));
+    }
+  };
+
+  const collapseAllAccounts = () => {
+    setExpandedAccounts(new Set());
   };
 
   if (isLoading) {
@@ -156,10 +211,10 @@ const SyncRunDetails = () => {
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Target: {targetDate ? format(new Date(targetDate), 'MMM d, yyyy') : '—'}</span>
             <span className="flex items-center gap-1.5">
               <Settings2 className="w-4 h-4" /> 
-              Source: {triggeredBy === 'system-auto-sync' ? 'System Auto Sync' : triggeredBy || 'Manual'}
+              Source: {formatSource(triggeredBy)}
             </span>
-            {createdAt && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Started: {format(new Date(createdAt), 'HH:mm:ss')}</span>}
-            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Completed: {completedAt ? format(new Date(completedAt), 'HH:mm:ss') : (isRunning ? 'Running' : '—')}</span>
+            {createdAt && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Started: {format(new Date(createdAt), 'MMM d, yyyy h:mm a')}</span>}
+            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Completed: {completedAt ? format(new Date(completedAt), 'MMM d, yyyy h:mm a') : (isRunning ? 'Running' : '—')}</span>
             <span className="flex items-center gap-1.5"><Settings2 className="w-4 h-4" /> Duration: {isRunning ? 'Running' : formatDuration(createdAt, completedAt)}</span>
           </div>
         </div>
@@ -187,6 +242,12 @@ const SyncRunDetails = () => {
               {result.created ?? 0} created • {result.skippedDuplicates ?? 0} duplicates • {result.failed ?? 0} failed
             </p>
           )}
+          {status === 'completed' && hasResult && result.message === 'Sync completed with media warnings' && (
+            <p className="text-xs font-medium text-warning mt-1.5 flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" />
+              Sync completed, but one or more accounts need media attention (see Account Breakdown below).
+            </p>
+          )}
         </div>
       </div>
 
@@ -211,46 +272,275 @@ const SyncRunDetails = () => {
 
       {/* Account Breakdown */}
       <div className="rounded-2xl border border-base-200 bg-base-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-base-200 bg-base-100/50 flex items-center gap-2">
-          <Users className="w-5 h-5 text-base-content/70" />
-          <h2 className="text-lg font-semibold text-base-content">Account Breakdown</h2>
+        <div className="p-4 border-b border-base-200 bg-base-100/50 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-base-content/70" />
+            <h2 className="text-lg font-semibold text-base-content">Account Breakdown</h2>
+            {hasResult && result.accounts && (
+              <span className="badge badge-sm badge-ghost font-normal text-xs ml-1">
+                {Object.keys(result.accounts).length} {Object.keys(result.accounts).length === 1 ? 'account' : 'accounts'}
+              </span>
+            )}
+          </div>
+          {!isRunning && hasResult && result.accounts && Object.keys(result.accounts).length > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <button onClick={expandAllAccounts} className="btn btn-xs btn-ghost text-base-content/70 font-medium">Expand all</button>
+              <button onClick={collapseAllAccounts} className="btn btn-xs btn-ghost text-base-content/70 font-medium">Collapse all</button>
+            </div>
+          )}
         </div>
-        <div className="overflow-x-auto w-full">
-          <table className="table w-full">
-            <thead className="bg-base-200/30">
-              <tr>
-                <th>Account</th>
-                <th className="text-right">Found</th>
-                <th className="text-right">Created</th>
-                <th className="text-right">Duplicates</th>
-                <th className="text-right">Skipped</th>
-                <th className="text-right">Failed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hasResult && result.accounts && Object.keys(result.accounts).length > 0 ? (
-                Object.entries(result.accounts).map(([accountName, stats]) => (
-                  <tr key={accountName} className="hover">
-                    <td className="font-medium text-base-content">{accountName}</td>
-                    <td className="text-right tabular-nums text-base-content/80">{stats.found ?? 0}</td>
-                    <td className="text-right tabular-nums text-success font-medium">{stats.created ?? 0}</td>
-                    <td className="text-right tabular-nums text-base-content/70">{stats.duplicates ?? 0}</td>
-                    <td className="text-right tabular-nums text-warning">{stats.qualitySkipped ?? 0}</td>
-                    <td className={`text-right tabular-nums ${stats.failed > 0 ? 'text-error font-bold' : 'text-base-content/50'}`}>
-                      {stats.failed ?? 0}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-base-content/50 text-sm">
-                    {isRunning ? 'Breakdown not available while sync is running.' : 'No account breakdown available for this run.'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+
+        {isRunning && (
+          <div className="p-12 text-center text-base-content/50 text-sm">
+            Breakdown not available while sync is running.
+          </div>
+        )}
+
+        {!isRunning && (!hasResult || !result.accounts || Object.keys(result.accounts).length === 0) && (
+          <div className="p-12 text-center text-base-content/50 text-sm">
+            No account breakdown available for this run.
+          </div>
+        )}
+
+        {!isRunning && hasResult && result.accounts && Object.keys(result.accounts).length > 0 && (
+          <div className="p-4 space-y-3">
+            {Object.entries(result.accounts).map(([accountName, stats]) => {
+              const isExpanded = expandedAccounts.has(accountName);
+              const hasPlanningData =
+                stats.target !== undefined ||
+                stats.preparedBefore !== undefined ||
+                stats.remainingNeeded !== undefined ||
+                stats.driveFound !== undefined ||
+                stats.knownPreparedStillInDrive !== undefined ||
+                stats.newAvailable !== undefined ||
+                stats.selected !== undefined ||
+                stats.extra !== undefined ||
+                stats.shortage !== undefined ||
+                stats.warning !== undefined;
+
+              if (!hasPlanningData) {
+                return (
+                  <div
+                    key={accountName}
+                    className={`p-3.5 rounded-xl border border-base-200 bg-base-200/20 transition-colors duration-200 ${
+                      isExpanded ? 'border-base-300 shadow-xs' : 'hover:border-base-300'
+                    }`}
+                  >
+                    {/* Collapsed Header / Summary */}
+                    <div
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none"
+                      onClick={() => toggleAccountExpand(accountName)}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-base text-base-content">{accountName}</span>
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-base-content/70">
+                          <span className="text-xs text-base-content/40 font-normal">Legacy record</span>
+                          <span>&bull;</span>
+                          <span>Found {stats.found ?? 0}</span>
+                          <span>&bull;</span>
+                          <span className="text-success font-medium">Created {stats.created ?? 0}</span>
+                          <span>&bull;</span>
+                          <span>Duplicates {stats.duplicates ?? 0}</span>
+                          {stats.failed > 0 && (
+                            <>
+                              <span>&bull;</span>
+                              <span className="text-error font-medium">Failed {stats.failed}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-ghost btn-circle"
+                          aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                        >
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                              isExpanded ? 'rotate-180' : 'rotate-0'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Smooth Collapsible Content */}
+                    <div
+                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                        isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="pt-3 border-t border-base-200/70 mt-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                            <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                              <span className="text-xs text-base-content/60">Found</span>
+                              <span className="text-base font-semibold text-base-content tabular-nums mt-0.5">{stats.found ?? 0}</span>
+                            </div>
+                            <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                              <span className="text-xs text-base-content/60">Created</span>
+                              <span className="text-base font-semibold text-success tabular-nums mt-0.5">{stats.created ?? 0}</span>
+                            </div>
+                            <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                              <span className="text-xs text-base-content/60">Duplicates</span>
+                              <span className="text-base font-semibold text-base-content/70 tabular-nums mt-0.5">{stats.duplicates ?? 0}</span>
+                            </div>
+                            <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                              <span className="text-xs text-base-content/60">Skipped</span>
+                              <span className="text-base font-semibold text-warning tabular-nums mt-0.5">{stats.qualitySkipped ?? 0}</span>
+                            </div>
+                            <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                              <span className="text-xs text-base-content/60">Failed</span>
+                              <span className={`text-base font-semibold tabular-nums mt-0.5 ${stats.failed > 0 ? 'text-error font-bold' : 'text-base-content/50'}`}>
+                                {stats.failed ?? 0}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={accountName}
+                  className={`p-3.5 rounded-xl border border-base-200 bg-base-200/20 transition-colors duration-200 ${
+                    isExpanded ? 'border-base-300 shadow-xs' : 'hover:border-base-300'
+                  }`}
+                >
+                  {/* Collapsed Header / Summary */}
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none"
+                    onClick={() => toggleAccountExpand(accountName)}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-base text-base-content">{accountName}</span>
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-base-content/70">
+                        <span className="badge badge-sm badge-ghost font-medium">
+                          Target {stats.target === null ? 'Unlimited' : (stats.target ?? '—')}
+                        </span>
+                        <span>&bull;</span>
+                        <span>Prepared {stats.preparedBefore ?? '—'}</span>
+                        <span>&bull;</span>
+                        <span>Needed {stats.remainingNeeded === null ? 'Unlimited' : (stats.remainingNeeded ?? '—')}</span>
+                        <span>&bull;</span>
+                        <span className="text-success font-medium">Created {stats.created ?? 0}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                      {stats.warning === 'EXTRA_MEDIA' && (
+                        <span className="badge badge-sm badge-info badge-outline font-medium">
+                          Extra Media (+{stats.extra ?? 0})
+                        </span>
+                      )}
+                      {stats.warning === 'NOT_ENOUGH_MEDIA' && (
+                        <span className="badge badge-sm badge-warning badge-outline font-medium">
+                          Shortage (-{stats.shortage ?? 0})
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="btn btn-xs btn-ghost btn-circle"
+                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                            isExpanded ? 'rotate-180' : 'rotate-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Smooth Collapsible Content */}
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                      isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="flex flex-col gap-3 pt-3 border-t border-base-200/70 mt-3">
+                        {/* Primary Planning & Delivery Metric Tiles */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Prepared Before</span>
+                            <span className="text-base font-semibold text-base-content tabular-nums mt-0.5">
+                              {stats.preparedBefore ?? '—'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Remaining Needed</span>
+                            <span className="text-base font-semibold text-base-content tabular-nums mt-0.5">
+                              {stats.remainingNeeded === null ? 'Unlimited' : (stats.remainingNeeded ?? '—')}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Drive Found</span>
+                            <span className="text-base font-semibold text-base-content tabular-nums mt-0.5">
+                              {stats.driveFound ?? stats.found ?? 0}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">New Available</span>
+                            <span className="text-base font-semibold text-base-content tabular-nums mt-0.5">
+                              {stats.newAvailable ?? '—'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Selected</span>
+                            <span className="text-base font-semibold text-primary tabular-nums mt-0.5">
+                              {stats.selected ?? '—'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Created</span>
+                            <span className="text-base font-semibold text-success tabular-nums mt-0.5">
+                              {stats.created ?? 0}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Duplicates</span>
+                            <span className="text-base font-semibold text-base-content/70 tabular-nums mt-0.5">
+                              {stats.duplicates ?? 0}
+                            </span>
+                          </div>
+                          <div className="flex flex-col bg-base-100 p-2.5 rounded-lg text-center border border-base-200/60 shadow-2xs">
+                            <span className="text-xs text-base-content/60">Failed</span>
+                            <span className={`text-base font-semibold tabular-nums mt-0.5 ${stats.failed > 0 ? 'text-error font-bold' : 'text-base-content/50'}`}>
+                              {stats.failed ?? 0}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Secondary Details Footer */}
+                        {(stats.extra !== undefined || stats.shortage !== undefined || stats.knownPreparedStillInDrive !== undefined || (stats.qualitySkipped !== undefined && stats.qualitySkipped > 0)) && (
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-base-content/60 pt-2 border-t border-base-200/50">
+                            {stats.extra !== undefined && stats.extra > 0 && (
+                              <span>Extra Media: <strong className="text-base-content">{stats.extra}</strong></span>
+                            )}
+                            {stats.shortage !== undefined && stats.shortage > 0 && (
+                              <span>Shortage: <strong className="text-base-content">{stats.shortage}</strong></span>
+                            )}
+                            {stats.knownPreparedStillInDrive !== undefined && (
+                              <span>Known in Drive: <strong className="text-base-content">{stats.knownPreparedStillInDrive}</strong></span>
+                            )}
+                            {stats.qualitySkipped !== undefined && stats.qualitySkipped > 0 && (
+                              <span className="text-warning">Quality Skipped: <strong>{stats.qualitySkipped}</strong></span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Failed Items */}
@@ -378,19 +668,62 @@ const SyncRunDetails = () => {
       )}
 
       {/* Technical Details */}
-      <div className="collapse collapse-arrow border border-base-200 bg-base-100 rounded-xl">
-        <input type="checkbox" /> 
-        <div className="collapse-title font-medium text-base-content/80 text-sm">
-          Technical Details
+      <div className="rounded-xl border border-base-200 bg-base-100 shadow-xs overflow-hidden">
+        <div
+          className="p-4 flex items-center justify-between cursor-pointer select-none bg-base-100/50 hover:bg-base-200/20 transition-colors"
+          onClick={() => setIsTechnicalExpanded(!isTechnicalExpanded)}
+        >
+          <div className="font-medium text-base-content/80 text-sm flex items-center gap-2">
+            <Settings2 className="w-4 h-4 text-base-content/60" />
+            <span>Technical Details</span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-xs btn-ghost btn-circle"
+            aria-label={isTechnicalExpanded ? 'Collapse' : 'Expand'}
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-300 ease-in-out ${
+                isTechnicalExpanded ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </button>
         </div>
-        <div className="collapse-content"> 
-          <div className="bg-base-200/50 p-4 rounded-lg font-mono text-xs text-base-content/70 overflow-x-auto">
-            <p><strong className="text-base-content">Sync ID:</strong> {syncId}</p>
-            <p><strong className="text-base-content">Backend Status:</strong> {status}</p>
-            {triggeredBy && <p><strong className="text-base-content">Triggered By:</strong> {triggeredBy}</p>}
-            {hasResult && <p><strong className="text-base-content">Result Message:</strong> {result.message}</p>}
-            {createdAt && <p><strong className="text-base-content">Created At:</strong> {createdAt}</p>}
-            {completedAt && <p><strong className="text-base-content">Completed At:</strong> {completedAt}</p>}
+
+        <div
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+            isTechnicalExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="p-4 pt-1 border-t border-base-200/60">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
+                  <span className="text-xs text-base-content/50">Sync ID</span>
+                  <span className="text-sm font-mono text-base-content font-medium break-all mt-0.5">{syncId}</span>
+                </div>
+                <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
+                  <span className="text-xs text-base-content/50">Source</span>
+                  <span className="text-sm font-medium text-base-content mt-0.5">{formatSource(triggeredBy)}</span>
+                </div>
+                <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
+                  <span className="text-xs text-base-content/50">Status</span>
+                  <span className="text-sm font-medium text-base-content mt-0.5">{formatStatusLabel(status)}</span>
+                </div>
+                <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
+                  <span className="text-xs text-base-content/50">Started</span>
+                  <span className="text-sm text-base-content mt-0.5">{createdAt ? format(new Date(createdAt), 'MMM d, yyyy h:mm a') : '—'}</span>
+                </div>
+                <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
+                  <span className="text-xs text-base-content/50">Completed</span>
+                  <span className="text-sm text-base-content mt-0.5">{completedAt ? format(new Date(completedAt), 'MMM d, yyyy h:mm a') : (isRunning ? 'Running' : '—')}</span>
+                </div>
+                <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
+                  <span className="text-xs text-base-content/50">Duration</span>
+                  <span className="text-sm text-base-content mt-0.5">{isRunning ? 'Running' : formatDuration(createdAt, completedAt)}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
