@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { formatDisplayDateTime } from '../../../../utils/dateTime';
 import { AlertCircle, AlertTriangle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useStaleSyncResolve } from '../../../../hooks/useStaleSyncs';
@@ -38,7 +38,7 @@ const StaleSyncPreviewModal = ({ previewData, isOpen, onClose }) => {
         <ul className="text-sm divide-y divide-base-200">
           {sample.map((item, index) => {
             const dateStr = item.createdAt;
-            const formattedDate = dateStr ? format(new Date(dateStr), 'MMM d, yyyy h:mm a') : 'Unknown Date';
+            const formattedDate = formatDisplayDateTime(dateStr, 'Unknown Date');
             return (
               <li key={item.id || index} className="px-3 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <span className="font-medium text-base-content/90">Target: {item.targetDate || 'unknown'}</span>
@@ -98,7 +98,7 @@ const StaleSyncPreviewModal = ({ previewData, isOpen, onClose }) => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-base-content/70">Started before:</span>
-                  <span className="font-semibold">{cutoff ? format(new Date(cutoff), 'MMM d, yyyy h:mm a') : 'Unknown'}</span>
+                  <span className="font-semibold">{formatDisplayDateTime(cutoff, 'Unknown')}</span>
                 </div>
               </div>
 

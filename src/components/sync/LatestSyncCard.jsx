@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router';
-import { format } from 'date-fns';
+import { formatDisplayDate, formatDisplayTime } from '../../utils/dateTime';
 import { ArrowRight, History, Settings2, AlertCircle } from 'lucide-react';
 import { useLatestSync } from '../../hooks/useLatestSync';
 import SyncStatusBadge from './SyncStatusBadge';
@@ -51,11 +51,11 @@ const LatestSyncCard = () => {
         <div className="text-sm text-base-content/70 mt-2">
           <p className="flex items-center gap-1.5">
             <Settings2 className="w-3.5 h-3.5 animate-spin" />
-            Preparing posts for {targetDate ? format(new Date(targetDate), 'MMM d, yyyy') : '...'}
+            Preparing posts for {formatDisplayDate(targetDate, '...')}
           </p>
           {createdAt && (
             <p className="text-xs opacity-70 mt-1">
-              Started at {format(new Date(createdAt), 'h:mm a')}
+              Started at {formatDisplayTime(createdAt)}
             </p>
           )}
         </div>
@@ -105,7 +105,7 @@ const LatestSyncCard = () => {
           <SyncStatusBadge status={status} />
           {targetDate && (
             <span className="text-sm font-medium">
-              {format(new Date(targetDate), 'MMM d, yyyy')}
+              {formatDisplayDate(targetDate)}
             </span>
           )}
           <span className={`badge badge-sm ${run.triggeredBy === 'system-auto-sync' ? 'badge-primary badge-outline' : 'badge-ghost'}`}>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
-import { formatDate } from '../../../utils/formatDate';
+import { formatDisplayDate } from '../../../utils/dateTime';
 import { Check, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LoadingState from '../../../components/common/LoadingState';
@@ -122,7 +122,7 @@ const AccessReq = () => {
                       </td>
 
                       <td className="block md:table-cell py-2 md:py-4 px-2 md:px-6 before:content-['Requested_At:'] md:before:hidden before:font-bold before:text-[10px] before:uppercase before:text-base-content/50 before:block mb-4 md:mb-0">
-                        <span className="text-sm text-base-content/70">{formatDate(r.createdAt)}</span>
+                        <span className="text-sm text-base-content/70">{formatDisplayDate(r.createdAt)}</span>
                       </td>
 
                       <td className="block md:table-cell text-left md:text-right py-2 md:py-4 px-2 md:px-6">

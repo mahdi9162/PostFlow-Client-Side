@@ -8,6 +8,7 @@ import CopyButton from '../Buttons/copyButton/CopyButton';
 import toast from 'react-hot-toast';
 import { useMe } from '../../hooks/useMe';
 import { getTodayDateBd } from '../../utils/getTodayDateBd';
+import { formatFeedHeaderDate } from '../../utils/dateTime';
 import PostEditModal from './PostEditModal';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 
@@ -195,15 +196,7 @@ const PostCard = ({ account }) => {
   const handleNextDay = () => shiftDate(1);
 
   const isToday = selectedDate === getTodayDateBd();
-  
-  // Format date nicely (e.g. Thursday, Aug 13)
-  const [year, month, day] = selectedDate.split('-').map(Number);
-  const dateObj = new Date(year, month - 1, day);
-  const formattedDate = dateObj.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-  });
+  const formattedDate = formatFeedHeaderDate(selectedDate);
 
   return (
     <Container>

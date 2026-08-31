@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
+import { formatDisplayDate } from '../../../../utils/dateTime';
 import { AlertCircle, AlertTriangle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useCleanupExecute } from '../../../../hooks/useCleanup';
@@ -36,7 +36,7 @@ const CleanupPreviewModal = ({ previewData, isOpen, onClose }) => {
         <ul className="text-sm divide-y divide-base-200">
           {sample.map((item, index) => {
             const dateStr = item.createdAt || item.postedAt;
-            const formattedDate = dateStr ? format(new Date(dateStr), 'MMM d, yyyy') : 'Unknown Date';
+            const formattedDate = formatDisplayDate(dateStr, 'Unknown Date');
             return (
               <li key={item.id || item._id || index} className="px-3 py-2 flex items-center justify-between">
                 <span className="capitalize">{item.status || 'unknown'}</span>
@@ -93,7 +93,7 @@ const CleanupPreviewModal = ({ previewData, isOpen, onClose }) => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-base-content/70">Older than:</span>
-                  <span className="font-semibold">{cutoff ? format(new Date(cutoff), 'MMM d, yyyy') : 'Unknown'}</span>
+                  <span className="font-semibold">{formatDisplayDate(cutoff, 'Unknown')}</span>
                 </div>
               </div>
 

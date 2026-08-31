@@ -43,7 +43,7 @@ import React, { useState } from 'react';
  * @property {'EXTRA_MEDIA' | 'NOT_ENOUGH_MEDIA' | null} [warning]
  */
 import { useParams, Link, useNavigate } from 'react-router';
-import { format } from 'date-fns';
+import { formatDisplayDate, formatDisplayDateTime } from '../../../utils/dateTime';
 import { ArrowLeft, Clock, Calendar, CheckCircle2, AlertCircle, XCircle, FileText, Settings2, Users, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
@@ -194,7 +194,7 @@ const SyncRunDetails = () => {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold text-base-content">
-              Sync Run — {targetDate ? format(new Date(targetDate), 'MMM d, yyyy') : 'Unknown Date'}
+              Sync Run — {formatDisplayDate(targetDate, 'Unknown Date')}
             </h1>
             <SyncStatusBadge status={status} />
           </div>
@@ -208,13 +208,13 @@ const SyncRunDetails = () => {
                 </Link>
               </span>
             )}
-            <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Target: {targetDate ? format(new Date(targetDate), 'MMM d, yyyy') : '—'}</span>
+            <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Target: {formatDisplayDate(targetDate, '—')}</span>
             <span className="flex items-center gap-1.5">
               <Settings2 className="w-4 h-4" /> 
               Source: {formatSource(triggeredBy)}
             </span>
-            {createdAt && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Started: {format(new Date(createdAt), 'MMM d, yyyy h:mm a')}</span>}
-            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Completed: {completedAt ? format(new Date(completedAt), 'MMM d, yyyy h:mm a') : (isRunning ? 'Running' : '—')}</span>
+            {createdAt && <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Started: {formatDisplayDateTime(createdAt)}</span>}
+            <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Completed: {completedAt ? formatDisplayDateTime(completedAt) : (isRunning ? 'Running' : '—')}</span>
             <span className="flex items-center gap-1.5"><Settings2 className="w-4 h-4" /> Duration: {isRunning ? 'Running' : formatDuration(createdAt, completedAt)}</span>
           </div>
         </div>
@@ -712,11 +712,11 @@ const SyncRunDetails = () => {
                 </div>
                 <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
                   <span className="text-xs text-base-content/50">Started</span>
-                  <span className="text-sm text-base-content mt-0.5">{createdAt ? format(new Date(createdAt), 'MMM d, yyyy h:mm a') : '—'}</span>
+                  <span className="text-sm text-base-content mt-0.5">{formatDisplayDateTime(createdAt, '—')}</span>
                 </div>
                 <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
                   <span className="text-xs text-base-content/50">Completed</span>
-                  <span className="text-sm text-base-content mt-0.5">{completedAt ? format(new Date(completedAt), 'MMM d, yyyy h:mm a') : (isRunning ? 'Running' : '—')}</span>
+                  <span className="text-sm text-base-content mt-0.5">{completedAt ? formatDisplayDateTime(completedAt) : (isRunning ? 'Running' : '—')}</span>
                 </div>
                 <div className="bg-base-200/40 p-3 rounded-lg flex flex-col">
                   <span className="text-xs text-base-content/50">Duration</span>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
 import { Search, Filter, History, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { useSyncHistory } from '../../../hooks/useSyncHistory';
 import { useMe } from '../../../hooks/useMe';
@@ -7,6 +6,7 @@ import { useMe } from '../../../hooks/useMe';
 import { Link } from 'react-router';
 import SyncStatusBadge from '../../../components/sync/SyncStatusBadge';
 import { formatDuration } from '../../../utils/syncHelpers';
+import { formatDisplayDate, formatDisplayTime } from '../../../utils/dateTime';
 
 const SyncHistory = () => {
   const [page, setPage] = useState(1);
@@ -164,7 +164,7 @@ const SyncHistory = () => {
                 return (
                   <tr key={run._id} className="hover hover:bg-base-200/20 transition-colors">
                     <td className="font-medium">
-                      {run.targetDate ? format(new Date(run.targetDate), 'MMM d, yyyy') : '—'}
+                      {formatDisplayDate(run.targetDate, '—')}
                     </td>
                     <td>
                       <div className="flex flex-col gap-1 items-start">
@@ -182,7 +182,7 @@ const SyncHistory = () => {
                       </div>
                     </td>
                     <td className="text-base-content/70">
-                      {run.createdAt ? format(new Date(run.createdAt), 'h:mm a') : '—'}
+                      {formatDisplayTime(run.createdAt, '—')}
                     </td>
                     <td className="text-base-content/70">
                       {isRunning ? 'Running' : formatDuration(run.createdAt, run.completedAt)}
