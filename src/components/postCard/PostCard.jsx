@@ -3,6 +3,7 @@ import Container from '../container/Container';
 import { Link } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { capitalizeFirstLetter } from '../../utils/capitalizeFirstLetter';
+import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import CopyButton from '../Buttons/copyButton/CopyButton';
 
 import toast from 'react-hot-toast';
@@ -230,26 +231,44 @@ const PostCard = ({ account }) => {
             {/* Date Navigation & Summary */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-t border-base-200 pt-4">
               
-              {/* Date Nav */}
-              <div className="flex items-center justify-between w-full md:w-auto bg-base-200/50 rounded-full p-1 ring-1 ring-base-200">
-                <button onClick={handlePrevDay} className="btn btn-sm btn-circle btn-ghost" aria-label="Previous day">
-                  ←
+              {/* Date Nav Control */}
+              <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full md:w-auto bg-base-200/50 rounded-full p-1 sm:p-1.5 ring-1 ring-base-200 shadow-inner">
+                {/* Previous Day Button */}
+                <button
+                  onClick={handlePrevDay}
+                  className="btn btn-sm rounded-full bg-base-100 border border-base-300 hover:bg-base-200 hover:border-base-400 active:scale-95 shadow-sm text-xs font-semibold px-2.5 sm:px-3.5 py-1 min-h-[40px] min-w-[40px] sm:min-w-fit flex items-center justify-center gap-1.5 text-base-content transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0"
+                  aria-label="Previous day"
+                >
+                  <ChevronLeft className="size-4 text-base-content/70" />
+                  <span className="hidden sm:inline">Previous</span>
                 </button>
-                <div className="relative group px-2 cursor-pointer flex items-center justify-center min-w-[140px]">
-                   <span className="text-sm font-semibold text-base-content whitespace-nowrap">
-                     {formattedDate}
-                   </span>
-                   {/* Hidden native picker covering the text */}
-                   <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      aria-label="Select scheduled date"
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full"
-                    />
+
+                {/* Center Date Display + Date Picker Click Target */}
+                <div className="relative group px-2 sm:px-4 py-1.5 cursor-pointer flex items-center justify-center flex-1 sm:flex-initial min-w-0 sm:min-w-[160px] rounded-full hover:bg-base-100/60 transition-colors">
+                  <div className="flex items-center gap-1.5 pointer-events-none">
+                    <Calendar className="size-3.5 text-primary/80 shrink-0" />
+                    <span className="text-xs sm:text-sm font-bold text-base-content whitespace-nowrap">
+                      {formattedDate}
+                    </span>
+                  </div>
+                  {/* Hidden native picker covering the text */}
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    aria-label="Select scheduled date"
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
                 </div>
-                <button onClick={handleNextDay} className="btn btn-sm btn-circle btn-ghost" aria-label="Next day">
-                  →
+
+                {/* Next Day Button */}
+                <button
+                  onClick={handleNextDay}
+                  className="btn btn-sm rounded-full bg-base-100 border border-base-300 hover:bg-base-200 hover:border-base-400 active:scale-95 shadow-sm text-xs font-semibold px-2.5 sm:px-3.5 py-1 min-h-[40px] min-w-[40px] sm:min-w-fit flex items-center justify-center gap-1.5 text-base-content transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0"
+                  aria-label="Next day"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="size-4 text-base-content/70" />
                 </button>
               </div>
 

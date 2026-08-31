@@ -1,15 +1,14 @@
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import PawLoader from './PawLoader';
 
-const LoadingState = ({ message = 'Loading...', fullScreen = false }) => {
+const LoadingState = ({ message = 'Loading...', fullScreen = false, size = 'lg' }) => {
   const containerClass = fullScreen
-    ? 'min-h-[50vh] flex flex-col items-center justify-center w-full'
+    ? 'min-h-[50vh] flex flex-col items-center justify-center w-full p-8'
     : 'flex flex-col items-center justify-center p-8 w-full';
 
   return (
     <div className={containerClass}>
-      <Loader2 className="size-8 animate-spin text-primary" />
-      {message && <p className="mt-4 text-sm font-medium text-base-content/70">{message}</p>}
+      <PawLoader size={fullScreen ? 'lg' : size} message={message} />
     </div>
   );
 };
