@@ -1,25 +1,29 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import MainLayout from '../layouts/MainLayout/MainLayout';
-import Home from '../pages/public/home/Home';
-import AccountPage from '../pages/public/account/AccountPage';
-import Signup from '../components/auth/Signup';
-import Login from '../components/auth/Login';
-import PrivateRoute from './PrivateRoute';
-import CheckEmail from '../pages/public/checkEmail/CheckEmail';
-import DashboardHome from '../pages/dashboard/dashboardHome/DashboardHome';
-import CreatePost from '../pages/dashboard/posts/CreatePost';
-import ForgotPassword from '../pages/public/forgotPass/ForgotPassword';
-import PendingApproval from '../pages/public/pendingApproval/PendingApproval';
-import AuthOnlyRoute from './AuthOnlyRoute';
 import DashboardLayout from '../layouts/DashboardLayout/DashboardLayout';
-import AccessReq from '../pages/dashboard/admin/AccessReq';
-import AccountHashtagsManager from '../pages/dashboard/admin/AccountHashtagsManager';
-import AccountManager from '../pages/dashboard/admin/accountManager/AccountManager';
-import PlatformSettings from '../pages/dashboard/admin/platformSettings/PlatformSettings';
-import SyncHistory from '../pages/dashboard/syncHistory/SyncHistory';
-import SyncRunDetails from '../pages/dashboard/syncHistory/SyncRunDetails';
-import AiSettings from '../pages/dashboard/admin/aiSettings/AiSettings';
+import PrivateRoute from './PrivateRoute';
+import AuthOnlyRoute from './AuthOnlyRoute';
+import LoadingState from '../components/common/LoadingState';
+
+// Lazy-loaded route components
+const Home = lazy(() => import('../pages/public/home/Home'));
+const AccountPage = lazy(() => import('../pages/public/account/AccountPage'));
+const Signup = lazy(() => import('../components/auth/Signup'));
+const Login = lazy(() => import('../components/auth/Login'));
+const CheckEmail = lazy(() => import('../pages/public/checkEmail/CheckEmail'));
+const PendingApproval = lazy(() => import('../pages/public/pendingApproval/PendingApproval'));
+const ForgotPassword = lazy(() => import('../pages/public/forgotPass/ForgotPassword'));
+
+const DashboardHome = lazy(() => import('../pages/dashboard/dashboardHome/DashboardHome'));
+const CreatePost = lazy(() => import('../pages/dashboard/posts/CreatePost'));
+const AccessReq = lazy(() => import('../pages/dashboard/admin/AccessReq'));
+const AccountHashtagsManager = lazy(() => import('../pages/dashboard/admin/AccountHashtagsManager'));
+const AccountManager = lazy(() => import('../pages/dashboard/admin/accountManager/AccountManager'));
+const SyncHistory = lazy(() => import('../pages/dashboard/syncHistory/SyncHistory'));
+const SyncRunDetails = lazy(() => import('../pages/dashboard/syncHistory/SyncRunDetails'));
+const PlatformSettings = lazy(() => import('../pages/dashboard/admin/platformSettings/PlatformSettings'));
+const AiSettings = lazy(() => import('../pages/dashboard/admin/aiSettings/AiSettings'));
 
 export const router = createBrowserRouter([
   {
@@ -28,39 +32,63 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: Home,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <Home />
+          </Suspense>
+        ),
       },
       {
         path: ':accountSlug',
         element: (
           <PrivateRoute>
-            <AccountPage />
+            <Suspense fallback={<LoadingState fullScreen={true} />}>
+              <AccountPage />
+            </Suspense>
           </PrivateRoute>
         ),
       },
       {
         path: 'signup',
-        Component: Signup,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <Signup />
+          </Suspense>
+        ),
       },
       {
         path: 'login',
-        Component: Login,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <Login />
+          </Suspense>
+        ),
       },
       {
         path: 'check-email',
-        Component: CheckEmail,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <CheckEmail />
+          </Suspense>
+        ),
       },
       {
         path: '/pending-approval',
         element: (
           <AuthOnlyRoute>
-            <PendingApproval />
+            <Suspense fallback={<LoadingState fullScreen={true} />}>
+              <PendingApproval />
+            </Suspense>
           </AuthOnlyRoute>
         ),
       },
       {
         path: 'forgot-password',
-        Component: ForgotPassword,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <ForgotPassword />
+          </Suspense>
+        ),
       },
     ],
   },
@@ -74,23 +102,35 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: DashboardHome,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <DashboardHome />
+          </Suspense>
+        ),
       },
       {
         path: '/dashboard/create-post',
-        Component: CreatePost,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <CreatePost />
+          </Suspense>
+        ),
       },
       {
         path: '/dashboard/AccessReq',
         element: (
-          <PrivateRoute>
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
             <AccessReq />
-          </PrivateRoute>
+          </Suspense>
         ),
       },
       {
         path: '/dashboard/hashtags-manager',
-        Component: AccountHashtagsManager,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <AccountHashtagsManager />
+          </Suspense>
+        ),
       },
       {
         path: '/dashboard/hastags-manager',
@@ -98,38 +138,42 @@ export const router = createBrowserRouter([
       },
       {
         path: '/dashboard/account-manager',
-        Component: AccountManager,
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <AccountManager />
+          </Suspense>
+        ),
       },
       {
         path: '/dashboard/sync-history',
         element: (
-          <PrivateRoute>
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
             <SyncHistory />
-          </PrivateRoute>
+          </Suspense>
         ),
       },
       {
         path: '/dashboard/sync-history/:syncId',
         element: (
-          <PrivateRoute>
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
             <SyncRunDetails />
-          </PrivateRoute>
+          </Suspense>
         ),
       },
       {
         path: '/dashboard/settings/platform',
         element: (
-          <PrivateRoute>
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
             <PlatformSettings />
-          </PrivateRoute>
+          </Suspense>
         ),
       },
       {
         path: '/dashboard/settings/ai',
         element: (
-          <PrivateRoute>
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
             <AiSettings />
-          </PrivateRoute>
+          </Suspense>
         ),
       },
     ],

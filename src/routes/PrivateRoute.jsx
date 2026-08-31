@@ -14,13 +14,13 @@ const PrivateRoute = ({ children }) => {
     isLoading: meLoading,
     isError: meError,
   } = useQuery({
-    queryKey: ['me', user?.email], // user change হলে refetch
+    queryKey: ['me'],
     queryFn: async () => {
       const res = await axiosSecure.get('/api/users/me');
       return res.data;
     },
-    enabled: !!user && !!user?.emailVerified, // ✅ only fetch when allowed
-    staleTime: 10_000,
+    enabled: !!user && !!user?.emailVerified,
+    staleTime: 5 * 60 * 1000,
     retry: 1,
   });
 

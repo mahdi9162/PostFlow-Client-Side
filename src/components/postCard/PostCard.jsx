@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Container from '../container/Container';
 import { Link } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,32 +38,13 @@ const PostCard = ({ account }) => {
   const { isAdmin, isCreator } = useMe();
 
   const {
-    data: posts = [],
+    data: allPosts = [],
     isLoading,
     isError,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['posts', account, selectedDate, selectedStatus],
-    queryFn: async () => {
-      const params = {
-        account,
-        scheduledDate: selectedDate,
-      };
-      if (selectedStatus !== 'all') {
-        params.status = selectedStatus;
-      }
-      const res = await axiosSecure.get('/api/posts', { params });
-      return res.data;
-    },
-  });
-
-  const { 
-    data: summaryPosts = [],
-    isLoading: isSummaryLoading,
-    isError: isSummaryError
-  } = useQuery({
-    queryKey: ['posts', account, selectedDate, 'all'],
+    queryKey: ['posts', account, selectedDate],
     queryFn: async () => {
       const params = {
         account,
@@ -72,17 +53,19 @@ const PostCard = ({ account }) => {
       const res = await axiosSecure.get('/api/posts', { params });
       return res.data;
     },
-    enabled: selectedStatus !== 'all'
+    enabled: !!account && !!selectedDate,
   });
 
-  const summarySource = selectedStatus === 'all' ? posts : summaryPosts;
-  const showSummaryLoading = selectedStatus === 'all' ? isLoading : isSummaryLoading;
+  const posts = useMemo(() => {
+    if (selectedStatus === 'all') return allPosts;
+    return allPosts.filter((p) => p.status === selectedStatus);
+  }, [allPosts, selectedStatus]);
 
-  const summary = {
-    total: summarySource.length,
-    pending: summarySource.filter((p) => p.status === 'pending').length,
-    posted: summarySource.filter((p) => p.status === 'posted').length,
-  };
+  const summary = useMemo(() => ({
+    total: allPosts.length,
+    pending: allPosts.filter((p) => p.status === 'pending').length,
+    posted: allPosts.filter((p) => p.status === 'posted').length,
+  }), [allPosts]);
 
   const handleMarkAsButton = async (id, status) => {
     setStatusLoadingIds((prev) => new Set(prev).add(id));
@@ -279,9 +262,9 @@ const PostCard = ({ account }) => {
 
               {/* Summary Stats */}
               <div className="flex items-center gap-1.5 md:gap-3 w-full md:w-auto justify-center">
-                {isSummaryError ? (
+                {isError ? (
                   <span className="text-sm font-semibold text-error/80 px-4 py-2">Summary unavailable</span>
-                ) : showSummaryLoading ? (
+                ) : isLoading ? (
                   <>
                     <div className="flex flex-col items-center bg-base-200/40 px-3 py-1.5 rounded-xl border border-base-200 min-w-[70px]">
                       <span className="text-lg font-bold leading-none text-base-content/30">—</span>

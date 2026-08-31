@@ -11,6 +11,7 @@ export const useAccounts = (enabled = true) => {
       const res = await axiosSecure.get('/api/accounts');
       return res.data;
     },
+    staleTime: 10 * 60 * 1000,
   });
 
   return { accounts: data?.accounts || [], isLoading, isError, error };

@@ -10,6 +10,7 @@ export const useMe = () => {
       const res = await axiosSecure.get('/api/users/me');
       return res.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const isAdmin = me?.status === 'approved' && me?.role === 'admin';

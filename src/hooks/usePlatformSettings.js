@@ -11,6 +11,7 @@ export const usePlatformSettings = () => {
       const res = await axiosSecure.get('/api/settings/platform');
       return res.data;
     },
+    staleTime: 60 * 1000,
   });
 
   const mutation = useMutation({
