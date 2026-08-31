@@ -182,7 +182,7 @@ const SyncHistory = () => {
                       </div>
                     </td>
                     <td className="text-base-content/70">
-                      {run.createdAt ? format(new Date(run.createdAt), 'MMM d, yyyy HH:mm') : '—'}
+                      {run.createdAt ? format(new Date(run.createdAt), 'MMM d, yyyy h:mm a') : '—'}
                     </td>
                     <td className="text-base-content/70">
                       {isRunning ? 'Running' : formatDuration(run.createdAt, run.completedAt)}

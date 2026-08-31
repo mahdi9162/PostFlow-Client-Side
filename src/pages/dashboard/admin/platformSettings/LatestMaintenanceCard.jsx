@@ -53,7 +53,7 @@ const LatestMaintenanceCard = () => {
       <div className="flex items-center gap-4 text-xs text-base-content/60 mb-5 pb-4 border-b border-base-200">
         <div className="flex items-center gap-1.5">
           <Clock className="w-4 h-4" />
-          {format(new Date(run.ranAt), 'dd MMM yyyy, HH:mm')}
+          {format(new Date(run.ranAt), 'dd MMM yyyy, h:mm a')}
         </div>
         <div className="px-2 py-0.5 rounded-full bg-base-200 capitalize font-medium">
           {run.triggeredBy}
@@ -101,7 +101,7 @@ const LatestMaintenanceCard = () => {
             {run.result.message}
             {run.result.cutoffDate && (
               <span className="block mt-1 italic opacity-75">
-                Cutoff Date: {format(new Date(run.result.cutoffDate), 'dd MMM yyyy, HH:mm')}
+                Cutoff Date: {format(new Date(run.result.cutoffDate), 'dd MMM yyyy, h:mm a')}
               </span>
             )}
           </div>
