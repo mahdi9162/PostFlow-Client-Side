@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { getTodayDateBd } from '../../utils/getTodayDateBd';
 import { getTomorrowDateBd } from '../../utils/getTomorrowDateBd';
+import { useLatestSync } from '../../hooks/useLatestSync';
 import LatestSyncCard from './LatestSyncCard';
 
 const PreparePostsCard = () => {
@@ -10,6 +11,10 @@ const PreparePostsCard = () => {
   const axiosSecure = useAxiosSecure();
 
   const queryClient = useQueryClient();
+  const { data: latestSyncData } = useLatestSync();
+
+  const latestRun = latestSyncData?.runs?.[0];
+  const isSyncRunning = latestRun?.status === 'running';
 
   const syncMutation = useMutation({
     mutationFn: async (dateToSync) => {
@@ -22,11 +27,12 @@ const PreparePostsCard = () => {
   });
 
   const handleSync = () => {
-    if (!targetDate) return;
+    if (!targetDate || isSyncRunning) return;
     syncMutation.mutate(targetDate);
   };
 
   const handleSyncTomorrow = () => {
+    if (isSyncRunning) return;
     const tomorrow = getTomorrowDateBd();
     syncMutation.mutate(tomorrow);
   };
@@ -54,7 +60,7 @@ const PreparePostsCard = () => {
             className="input input-bordered w-full max-w-xs"
             value={targetDate}
             onChange={(e) => setTargetDate(e.target.value)}
-            disabled={isPending}
+            disabled={isPending || isSyncRunning}
           />
         </div>
 
@@ -62,16 +68,16 @@ const PreparePostsCard = () => {
           <button
             className="btn btn-primary"
             onClick={handleSync}
-            disabled={isPending || !targetDate}
+            disabled={isPending || isSyncRunning || !targetDate}
           >
             {isPending ? <span className="loading loading-spinner"></span> : null}
-            {isPending ? 'Preparing...' : 'Sync / Prepare Posts'}
+            {isPending ? 'Preparing...' : isSyncRunning ? 'Sync in Progress...' : 'Sync / Prepare Posts'}
           </button>
           
           <button
             className="btn btn-secondary"
             onClick={handleSyncTomorrow}
-            disabled={isPending}
+            disabled={isPending || isSyncRunning}
           >
             Sync Tomorrow's Posts
           </button>
