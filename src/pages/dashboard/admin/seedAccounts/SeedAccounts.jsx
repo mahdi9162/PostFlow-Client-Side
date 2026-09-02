@@ -20,7 +20,9 @@ import {
   X,
   Compass,
   Tag,
+  Trash2,
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../../../hooks/useAxiosSecure';
 import { useMe } from '../../../../hooks/useMe';
@@ -95,6 +97,42 @@ const SeedAccounts = () => {
     } finally {
       setActionId(null);
     }
+  };
+
+  const handleDeleteSeed = async (seed) => {
+    Swal.fire({
+      title: 'Permanently delete this seed?',
+      text: 'This action cannot be undone. Deleting it removes the rejection/archive record, so if Instagram discovery finds this account again later, it may reappear as a new candidate.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#E11D48',
+      cancelButtonColor: '#1F2937',
+      confirmButtonText: 'Delete Permanently',
+      cancelButtonText: 'Cancel',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setActionId(seed._id);
+        try {
+          await axiosSecure.delete(`/api/lead-seeds/${seed._id}`);
+          Swal.fire({
+            title: 'Deleted!',
+            text: `Seed account @${seed.username} has been permanently deleted.`,
+            icon: 'success',
+            confirmButtonColor: '#2F6BFF',
+          });
+          queryClient.invalidateQueries({ queryKey: ['lead-seeds'] });
+        } catch (deleteError) {
+          Swal.fire({
+            title: 'Cannot Delete',
+            text: deleteError?.response?.data?.message || 'Failed to delete seed account.',
+            icon: 'error',
+            confirmButtonColor: '#2F6BFF',
+          });
+        } finally {
+          setActionId(null);
+        }
+      }
+    });
   };
 
   return (
@@ -476,17 +514,28 @@ const SeedAccounts = () => {
                             </>
                           )}
 
-                          {/* Archived Actions: Restore */}
+                          {/* Archived Actions: Restore & Permanent Delete */}
                           {isArchived && (
-                            <button
-                              onClick={() => handleUpdateStatus(seed._id, 'verified', true)}
-                              disabled={isActing}
-                              className="btn btn-ghost btn-xs rounded-lg text-primary hover:bg-primary/10 gap-1 font-semibold"
-                              title="Restore seed account to verified"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              Restore
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleUpdateStatus(seed._id, 'verified', true)}
+                                disabled={isActing}
+                                className="btn btn-ghost btn-xs rounded-lg text-primary hover:bg-primary/10 gap-1 font-semibold"
+                                title="Restore seed account to verified"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                Restore
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSeed(seed)}
+                                disabled={isActing}
+                                className="btn btn-ghost btn-xs rounded-lg text-error hover:bg-error/10 gap-1 font-semibold"
+                                title="Permanently delete archived seed"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Delete
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
