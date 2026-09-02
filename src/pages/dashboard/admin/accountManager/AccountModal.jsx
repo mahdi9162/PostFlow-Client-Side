@@ -9,7 +9,7 @@ const AccountModal = ({ modalRef, mode, account }) => {
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     displayName: '',
     slug: '',
@@ -18,6 +18,10 @@ const AccountModal = ({ modalRef, mode, account }) => {
     isActive: true,
     order: 1,
     dailyPostTarget: '',
+    leadFinderEnabled: false,
+    leadFinderDailyTarget: 20,
+    leadFinderBatchSize: 10,
+    leadFinderInterval: 180,
   });
 
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
@@ -32,6 +36,10 @@ const AccountModal = ({ modalRef, mode, account }) => {
         isActive: account.isActive ?? true,
         order: account.order || 1,
         dailyPostTarget: account.dailyPostTarget || '',
+        leadFinderEnabled: account.leadFinder?.enabled ?? false,
+        leadFinderDailyTarget: account.leadFinder?.dailyLeadTarget ?? 20,
+        leadFinderBatchSize: account.leadFinder?.releaseBatchSize ?? 10,
+        leadFinderInterval: account.leadFinder?.releaseIntervalMinutes ?? 180,
       });
       setSlugManuallyEdited(true);
     } else if (mode === 'add') {
@@ -43,6 +51,10 @@ const AccountModal = ({ modalRef, mode, account }) => {
         isActive: true,
         order: 1,
         dailyPostTarget: '',
+        leadFinderEnabled: false,
+        leadFinderDailyTarget: 20,
+        leadFinderBatchSize: 10,
+        leadFinderInterval: 180,
       });
       setSlugManuallyEdited(false);
     }
@@ -51,45 +63,63 @@ const AccountModal = ({ modalRef, mode, account }) => {
   const handleNameChange = (e) => {
     const newName = e.target.value;
     if (!slugManuallyEdited && mode === 'add') {
-      const generatedSlug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      setFormData(prev => ({ ...prev, displayName: newName, slug: generatedSlug }));
+      const generatedSlug = newName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      setFormData((prev) => ({ ...prev, displayName: newName, slug: generatedSlug }));
     } else {
-      setFormData(prev => ({ ...prev, displayName: newName }));
+      setFormData((prev) => ({ ...prev, displayName: newName }));
     }
   };
 
   const handleSlugChange = (e) => {
     setSlugManuallyEdited(true);
-    setFormData(prev => ({ ...prev, slug: e.target.value }));
+    setFormData((prev) => ({ ...prev, slug: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const finalSlug = formData.slug.trim().toLowerCase();
     if (RESERVED_SLUGS.includes(finalSlug)) {
       toast.error('This slug is reserved by PostFlow routing. Choose another slug.');
       return;
     }
 
+    const leadTarget = Number(formData.leadFinderDailyTarget);
+    const leadBatch = Number(formData.leadFinderBatchSize);
+    const leadInterval = Number(formData.leadFinderInterval);
+
+    if (leadTarget > 0 && leadBatch > leadTarget) {
+      toast.error('Lead release batch size cannot exceed daily lead target.');
+      return;
+    }
+
     setLoading(true);
+
+    const payload = {
+      displayName: formData.displayName,
+      slug: finalSlug,
+      driveFolderName: formData.driveFolderName,
+      platform: formData.platform,
+      isActive: formData.isActive,
+      order: Number(formData.order),
+      dailyPostTarget: formData.dailyPostTarget ? Number(formData.dailyPostTarget) : undefined,
+      leadFinder: {
+        enabled: Boolean(formData.leadFinderEnabled),
+        dailyLeadTarget: leadTarget,
+        releaseBatchSize: leadBatch,
+        releaseIntervalMinutes: leadInterval,
+      },
+    };
 
     try {
       if (mode === 'add') {
-        await axiosSecure.post('/api/accounts', {
-          ...formData,
-          slug: finalSlug,
-          order: Number(formData.order),
-          dailyPostTarget: Number(formData.dailyPostTarget)
-        });
+        await axiosSecure.post('/api/accounts', payload);
         toast.success('Account created successfully');
       } else {
-        await axiosSecure.patch(`/api/accounts/${account._id}`, {
-          ...formData,
-          slug: finalSlug,
-          order: Number(formData.order),
-          dailyPostTarget: Number(formData.dailyPostTarget)
-        });
+        await axiosSecure.patch(`/api/accounts/${account._id}`, payload);
         toast.success('Account updated successfully');
       }
 
@@ -103,22 +133,20 @@ const AccountModal = ({ modalRef, mode, account }) => {
   };
 
   return (
-    <dialog 
-      ref={modalRef} 
+    <dialog
+      ref={modalRef}
       className="modal modal-bottom sm:modal-middle"
       onCancel={(e) => {
         if (loading) e.preventDefault();
       }}
     >
-      <div className="modal-box p-0 w-full max-w-2xl bg-base-100 shadow-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden">
+      <div className="modal-box p-0 w-full max-w-2xl bg-base-100 shadow-2xl rounded-t-3xl sm:rounded-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex-none flex items-center justify-between px-6 py-4 border-b border-base-200 bg-base-100/95 backdrop-blur z-10">
-          <div className="flex items-center gap-3">
-            <div>
-              <h3 className="text-lg font-bold text-base-content tracking-tight">
-                {mode === 'add' ? 'Add New Account' : 'Edit Account'}
-              </h3>
-            </div>
+          <div>
+            <h3 className="text-lg font-bold text-base-content tracking-tight">
+              {mode === 'add' ? 'Add New Account' : 'Edit Account'}
+            </h3>
           </div>
           <button
             type="button"
@@ -131,7 +159,7 @@ const AccountModal = ({ modalRef, mode, account }) => {
         </div>
 
         {/* Body */}
-        <div className="p-6 bg-base-200/20">
+        <div className="p-6 bg-base-200/20 overflow-y-auto flex-1">
           <form id="accountForm" className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="form-control">
@@ -203,13 +231,12 @@ const AccountModal = ({ modalRef, mode, account }) => {
                 />
               </div>
 
-              <div className="form-control">
+              <div className="form-control md:col-span-2">
                 <label className="label">
                   <span className="label-text font-semibold">Daily Post Target</span>
                 </label>
                 <input
                   type="number"
-                  required
                   min="1"
                   step="1"
                   value={formData.dailyPostTarget}
@@ -218,8 +245,73 @@ const AccountModal = ({ modalRef, mode, account }) => {
                   placeholder="e.g. 5"
                 />
                 <label className="label">
-                  <span className="label-text-alt text-base-content/60">Number of posts PostFlow should prepare for this account each day.</span>
+                  <span className="label-text-alt text-base-content/60">
+                    Number of posts PostFlow should prepare for this account each day.
+                  </span>
                 </label>
+              </div>
+            </div>
+
+            {/* Lead Finder Section */}
+            <div className="border border-base-200 bg-base-100 p-4 rounded-2xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-semibold text-sm text-base-content block">Lead Finder Settings</span>
+                  <span className="text-xs text-base-content/60 block">Configure Instagram lead scraping limits for this account</span>
+                </div>
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary toggle-sm"
+                  checked={formData.leadFinderEnabled}
+                  onChange={(e) => setFormData({ ...formData, leadFinderEnabled: e.target.checked })}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-base-200/60">
+                <div className="form-control">
+                  <label className="label py-1">
+                    <span className="label-text text-xs font-semibold">Daily Lead Target</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="500"
+                    value={formData.leadFinderDailyTarget}
+                    onChange={(e) => setFormData({ ...formData, leadFinderDailyTarget: e.target.value })}
+                    className="input input-bordered input-sm rounded-xl"
+                  />
+                  <span className="text-[10px] text-base-content/50 mt-0.5">0 = disabled</span>
+                </div>
+
+                <div className="form-control">
+                  <label className="label py-1">
+                    <span className="label-text text-xs font-semibold">Release Batch Size</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.leadFinderBatchSize}
+                    onChange={(e) => setFormData({ ...formData, leadFinderBatchSize: e.target.value })}
+                    className="input input-bordered input-sm rounded-xl"
+                  />
+                  <span className="text-[10px] text-base-content/50 mt-0.5">leads per batch</span>
+                </div>
+
+                <div className="form-control">
+                  <label className="label py-1">
+                    <span className="label-text text-xs font-semibold">Release Interval</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="15"
+                    max="1440"
+                    value={formData.leadFinderInterval}
+                    onChange={(e) => setFormData({ ...formData, leadFinderInterval: e.target.value })}
+                    className="input input-bordered input-sm rounded-xl"
+                  />
+                  <span className="text-[10px] text-base-content/50 mt-0.5">in minutes</span>
+                </div>
               </div>
             </div>
 
@@ -256,7 +348,13 @@ const AccountModal = ({ modalRef, mode, account }) => {
             className="btn btn-primary px-6 rounded-xl"
             disabled={loading}
           >
-            {loading ? <span className="loading loading-spinner loading-sm" /> : (mode === 'add' ? 'Add Account' : 'Save Changes')}
+            {loading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : mode === 'add' ? (
+              'Add Account'
+            ) : (
+              'Save Changes'
+            )}
           </button>
         </div>
       </div>

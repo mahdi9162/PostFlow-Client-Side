@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from './useAxiosSecure';
+import useAuth from './useAuth';
 
 export const useAccounts = (enabled = true) => {
   const axiosSecure = useAxiosSecure();
+  const { user } = useAuth();
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['accounts'],
-    enabled,
+    queryKey: ['accounts', user?.email],
+    enabled: !!user && !!user?.emailVerified && enabled,
     queryFn: async () => {
       const res = await axiosSecure.get('/api/accounts');
       return res.data;

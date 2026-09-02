@@ -6,38 +6,23 @@ import NavbarProfileDropdown from './NavbarProfileDropdown';
 import SignupButton from '../Buttons/authButtons/SignupButton';
 import LoginButton from '../Buttons/authButtons/LoginButton';
 import useAuth from '../../hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
-import useAxiosSecure from '../../hooks/useAxiosSecure';
+import { useMe } from '../../hooks/useMe';
 import ThemeToggle from './ThemeToggle';
 import { useAccounts } from '../../hooks/useAccounts';
 
 const Navbar = () => {
   const { user } = useAuth();
-  const axiosSecure = useAxiosSecure();
-
-  // fetch
-  const { data: me } = useQuery({
-    queryKey: ['me', user?.email],
-    queryFn: async () => {
-      const res = await axiosSecure.get('/api/users/me');
-      return res.data;
-    },
-    enabled: !!user && !!user.emailVerified,
-    staleTime: 10_000,
-  });
-
-  const isApproved = me?.status === 'approved';
-  
-  const { accounts } = useAccounts(isApproved);
+  const { me, isApproved } = useMe();
+  const { accounts } = useAccounts(!!user);
 
   const links = [
     { id: 1, name: 'Home', path: '/' },
     ...(isApproved
       ? [
-          ...accounts.filter(a => a.isActive).map(a => ({
+          ...accounts.filter((a) => a.isActive).map((a) => ({
             id: a.slug,
             name: a.displayName,
-            path: `/${a.slug}`
+            path: `/${a.slug}`,
           })),
           { id: 'dashboard', name: 'Dashboard', path: '/dashboard' },
         ]

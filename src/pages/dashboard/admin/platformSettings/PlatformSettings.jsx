@@ -8,36 +8,38 @@ import StaleSyncPolicyCard from './StaleSyncPolicyCard';
 import LatestMaintenanceCard from './LatestMaintenanceCard';
 import DriveAutomationPolicyCard from './DriveAutomationPolicyCard';
 import AutoSyncPolicyCard from './AutoSyncPolicyCard';
+import LeadFinderPolicyCard from './LeadFinderPolicyCard';
+import LeadTargetAccountsSection from './LeadTargetAccountsSection';
 
 const RetentionPolicyCard = ({ title, description, targetType, localData, setLocalData, originalData }) => {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const policy = localData.retention[targetType];
   const originalPolicy = originalData.retention[targetType];
-  
+
   const isDirty = policy.enabled !== originalPolicy.enabled || policy.retentionDays !== originalPolicy.retentionDays;
 
   const handleEnabledChange = (e) => {
-    setLocalData(prev => ({
+    setLocalData((prev) => ({
       ...prev,
       retention: {
         ...prev.retention,
         [targetType]: {
           ...prev.retention[targetType],
-          enabled: e.target.checked
-        }
-      }
+          enabled: e.target.checked,
+        },
+      },
     }));
   };
 
   const handleDaysChange = (e) => {
     const val = e.target.value;
-    
+
     // Allow empty string temporarily for editing
     if (val === '') {
-      setLocalData(prev => ({
+      setLocalData((prev) => ({
         ...prev,
-        retention: { ...prev.retention, [targetType]: { ...prev.retention[targetType], retentionDays: '' } }
+        retention: { ...prev.retention, [targetType]: { ...prev.retention[targetType], retentionDays: '' } },
       }));
       setErrorMsg('Required field.');
       return;
@@ -50,22 +52,26 @@ const RetentionPolicyCard = ({ title, description, targetType, localData, setLoc
       newError = 'Enter a whole number between 1 and 3650 days.';
     }
 
-    setLocalData(prev => ({
+    setLocalData((prev) => ({
       ...prev,
-      retention: { ...prev.retention, [targetType]: { ...prev.retention[targetType], retentionDays: val } }
+      retention: { ...prev.retention, [targetType]: { ...prev.retention[targetType], retentionDays: val } },
     }));
     setErrorMsg(newError);
   };
 
   return (
-    <div className={`rounded-2xl border ${isDirty ? 'border-primary/40 shadow-sm bg-base-100' : 'border-base-200 bg-base-100'} p-5 transition-all`}>
+    <div
+      className={`rounded-2xl border ${
+        isDirty ? 'border-primary/40 shadow-sm bg-base-100' : 'border-base-200 bg-base-100'
+      } p-5 transition-all`}
+    >
       <h3 className="text-lg font-semibold text-base-content">{title}</h3>
       <p className="text-sm text-base-content/60 mt-1 mb-5">{description}</p>
 
       <div className="flex flex-col gap-5">
         <label className="flex items-center gap-3 cursor-pointer">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             className="toggle toggle-primary toggle-sm"
             checked={policy.enabled}
             onChange={handleEnabledChange}
@@ -80,8 +86,8 @@ const RetentionPolicyCard = ({ title, description, targetType, localData, setLoc
             Keep {targetType === 'syncHistory' ? 'sync history' : 'posted posts'} for (days)
           </label>
           <div className="flex items-center gap-2">
-            <input 
-              type="number" 
+            <input
+              type="number"
               className={`input input-bordered w-full max-w-[120px] ${errorMsg ? 'input-error' : ''}`}
               value={policy.retentionDays}
               onChange={handleDaysChange}
@@ -127,7 +133,7 @@ const PlatformSettings = () => {
           staleRun: {
             enabled: serverData.sync?.staleRun?.enabled ?? true,
             timeoutMinutes: serverData.sync?.staleRun?.timeoutMinutes ?? 30,
-          }
+          },
         },
         driveAutomation: {
           enabled: serverData.driveAutomation?.enabled ?? true,
@@ -137,7 +143,15 @@ const PlatformSettings = () => {
         },
         autoSync: {
           enabled: serverData.autoSync?.enabled ?? false,
-        }
+        },
+        leadFinder: {
+          leadFinderEnabled: serverData.leadFinder?.leadFinderEnabled ?? false,
+          autoScrapingEnabled: serverData.leadFinder?.autoScrapingEnabled ?? false,
+          scrapingStartTime: serverData.leadFinder?.scrapingStartTime ?? '01:00',
+          scrapingEndTime: serverData.leadFinder?.scrapingEndTime ?? '05:00',
+          timezone: serverData.leadFinder?.timezone ?? 'Asia/Dhaka',
+          leadBufferPercent: serverData.leadFinder?.leadBufferPercent ?? 0,
+        },
       });
     }
   }, [serverData]);
@@ -184,7 +198,7 @@ const PlatformSettings = () => {
         staleRun: {
           enabled: Boolean(localData.sync.staleRun.enabled),
           timeoutMinutes: Number(localData.sync.staleRun.timeoutMinutes),
-        }
+        },
       },
       driveAutomation: {
         enabled: Boolean(localData.driveAutomation.enabled),
@@ -194,7 +208,15 @@ const PlatformSettings = () => {
       },
       autoSync: {
         enabled: Boolean(localData.autoSync.enabled),
-      }
+      },
+      leadFinder: {
+        leadFinderEnabled: Boolean(localData.leadFinder?.leadFinderEnabled),
+        autoScrapingEnabled: Boolean(localData.leadFinder?.autoScrapingEnabled),
+        scrapingStartTime: localData.leadFinder?.scrapingStartTime || '01:00',
+        scrapingEndTime: localData.leadFinder?.scrapingEndTime || '05:00',
+        timezone: localData.leadFinder?.timezone || 'Asia/Dhaka',
+        leadBufferPercent: Number(localData.leadFinder?.leadBufferPercent ?? 0),
+      },
     };
   };
 
@@ -204,11 +226,30 @@ const PlatformSettings = () => {
     const t = Number(localData.sync.staleRun.timeoutMinutes);
     const pd = Number(localData.driveAutomation.prepareDaysAhead);
     const cd = Number(localData.driveAutomation.deleteFoldersOlderThanDays);
-    return Number.isInteger(s) && s >= 1 && s <= 3650 &&
-           Number.isInteger(p) && p >= 1 && p <= 3650 &&
-           Number.isInteger(t) && t >= 5 && t <= 1440 &&
-           Number.isInteger(pd) && pd >= 1 && pd <= 90 &&
-           Number.isInteger(cd) && cd >= 1 && cd <= 90;
+    const lf = localData.leadFinder;
+    const isTimeWindowValid = lf ? lf.scrapingStartTime !== lf.scrapingEndTime : true;
+    const buf = Number(lf?.leadBufferPercent ?? 0);
+    const isBufferValid = Number.isInteger(buf) && buf >= 0 && buf <= 100;
+
+    return (
+      Number.isInteger(s) &&
+      s >= 1 &&
+      s <= 3650 &&
+      Number.isInteger(p) &&
+      p >= 1 &&
+      p <= 3650 &&
+      Number.isInteger(t) &&
+      t >= 5 &&
+      t <= 1440 &&
+      Number.isInteger(pd) &&
+      pd >= 1 &&
+      pd <= 90 &&
+      Number.isInteger(cd) &&
+      cd >= 1 &&
+      cd <= 90 &&
+      isTimeWindowValid &&
+      isBufferValid
+    );
   };
 
   // Derive original normalized data to detect dirtiness safely
@@ -221,13 +262,13 @@ const PlatformSettings = () => {
       posts: {
         enabled: serverData.retention?.posts?.enabled ?? false,
         retentionDays: serverData.retention?.posts?.retentionDays ?? 90,
-      }
+      },
     },
     sync: {
       staleRun: {
         enabled: serverData.sync?.staleRun?.enabled ?? true,
         timeoutMinutes: serverData.sync?.staleRun?.timeoutMinutes ?? 30,
-      }
+      },
     },
     driveAutomation: {
       enabled: serverData.driveAutomation?.enabled ?? true,
@@ -237,7 +278,15 @@ const PlatformSettings = () => {
     },
     autoSync: {
       enabled: serverData.autoSync?.enabled ?? false,
-    }
+    },
+    leadFinder: {
+      leadFinderEnabled: serverData.leadFinder?.leadFinderEnabled ?? false,
+      autoScrapingEnabled: serverData.leadFinder?.autoScrapingEnabled ?? false,
+      scrapingStartTime: serverData.leadFinder?.scrapingStartTime ?? '01:00',
+      scrapingEndTime: serverData.leadFinder?.scrapingEndTime ?? '05:00',
+      timezone: serverData.leadFinder?.timezone ?? 'Asia/Dhaka',
+      leadBufferPercent: serverData.leadFinder?.leadBufferPercent ?? 0,
+    },
   };
 
   const isDirty = JSON.stringify(getNormalizedData()) !== JSON.stringify(originalData);
@@ -245,7 +294,7 @@ const PlatformSettings = () => {
 
   const handleSave = async () => {
     if (!canSave) return;
-    
+
     try {
       const payload = getNormalizedData();
       await updateSettingsAsync(payload);
@@ -264,7 +313,7 @@ const PlatformSettings = () => {
           Platform Settings
         </h1>
         <p className="text-sm text-base-content/60">
-          Manage PostFlow platform-level retention preferences.
+          Manage PostFlow platform-level retention, automation, and lead finder preferences.
         </p>
         <div className="mt-2 text-xs bg-primary/5 text-primary px-3 py-2 rounded-lg inline-flex items-center w-fit border border-primary/10">
           Automatic cleanup only runs when a retention policy is enabled.
@@ -272,7 +321,7 @@ const PlatformSettings = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <RetentionPolicyCard 
+        <RetentionPolicyCard
           title="Sync History Retention"
           description="Automatically remove old finalized sync history records after the configured retention period. Only finalized sync runs are eligible. Running syncs are never deleted."
           targetType="syncHistory"
@@ -281,7 +330,7 @@ const PlatformSettings = () => {
           originalData={originalData}
         />
 
-        <RetentionPolicyCard 
+        <RetentionPolicyCard
           title="Post Retention"
           description="Automatically remove old posted post records after the configured retention period. Only posts already marked as Posted are eligible. Pending posts are never deleted."
           targetType="posts"
@@ -290,19 +339,29 @@ const PlatformSettings = () => {
           originalData={originalData}
         />
 
-        <StaleSyncPolicyCard 
+        <StaleSyncPolicyCard
           localData={localData}
           setLocalData={setLocalData}
           originalData={originalData}
           isSettingsDirty={isDirty}
         />
 
-        <AutoSyncPolicyCard 
+        <AutoSyncPolicyCard
+          localData={localData}
+          setLocalData={setLocalData}
+          originalData={originalData}
+        />
+
+        {/* Lead Finder Global Card */}
+        <LeadFinderPolicyCard
           localData={localData}
           setLocalData={setLocalData}
           originalData={originalData}
         />
       </div>
+
+      {/* Dynamic Target Accounts Section */}
+      <LeadTargetAccountsSection />
 
       {/* Data Cleanup Section */}
       <div className="flex flex-col gap-2 border-b border-base-200 pb-5 mt-10">
@@ -313,7 +372,7 @@ const PlatformSettings = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <CleanupPolicyCard 
+        <CleanupPolicyCard
           title="Sync History Cleanup"
           description="Preview and remove finalized sync history older than the configured retention period."
           targetType="syncHistory"
@@ -321,7 +380,7 @@ const PlatformSettings = () => {
           isRetentionEnabled={originalData.retention.syncHistory.enabled}
         />
 
-        <CleanupPolicyCard 
+        <CleanupPolicyCard
           title="Posted Posts Cleanup"
           description="Preview and remove posted PostFlow records older than the configured retention period."
           targetType="posts"
@@ -339,7 +398,7 @@ const PlatformSettings = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DriveAutomationPolicyCard 
+        <DriveAutomationPolicyCard
           localData={localData}
           setLocalData={setLocalData}
           originalData={originalData}
@@ -358,7 +417,7 @@ const PlatformSettings = () => {
             <span className="text-base-content/50">Settings are up to date</span>
           )}
         </div>
-        <button 
+        <button
           className="btn btn-primary min-w-[140px]"
           onClick={handleSave}
           disabled={!canSave}

@@ -1,28 +1,12 @@
 import { Navigate, useLocation } from 'react-router';
 import useAuth from '../hooks/useAuth';
 import LoadingState from '../components/common/LoadingState';
-import useAxiosSecure from '../hooks/useAxiosSecure';
-import { useQuery } from '@tanstack/react-query';
+import { useMe } from '../hooks/useMe';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const axiosSecure = useAxiosSecure();
-
-  const {
-    data: me,
-    isLoading: meLoading,
-    isError: meError,
-  } = useQuery({
-    queryKey: ['me'],
-    queryFn: async () => {
-      const res = await axiosSecure.get('/api/users/me');
-      return res.data;
-    },
-    enabled: !!user && !!user?.emailVerified,
-    staleTime: 5 * 60 * 1000,
-    retry: 1,
-  });
+  const { me, isLoading: meLoading, isError: meError } = useMe();
 
   // 1) firebase auth loading
   if (loading) return <LoadingState fullScreen={true} />;
@@ -33,7 +17,7 @@ const PrivateRoute = ({ children }) => {
   // 3) Not verified
   if (!user.emailVerified) return <Navigate to="/check-email" replace />;
 
-  if (meLoading) return <LoadingState fullScreen={true} />;
+  if (meLoading && !me) return <LoadingState fullScreen={true} />;
   if (meError) return <Navigate to="/login" replace />;
 
   const status = me?.status || 'pending';

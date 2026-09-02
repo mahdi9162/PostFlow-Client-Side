@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
 import useAuth from '../../hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
 
 const NavbarProfileDropdown = () => {
   const { userSignOut } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
   const handleSignOut = async () => {
     setLoading(true);
     try {
       await userSignOut();
-      alert('Successfully signout');
-    } catch { /* ignore */ } finally {
+      queryClient.clear();
+      toast.success('Signed out successfully');
+      navigate('/login', { replace: true });
+    } catch {
+      /* ignore */
+    } finally {
       setLoading(false);
     }
   };

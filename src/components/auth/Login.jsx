@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Container from '../container/Container';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../hooks/useAuth';
 import LoadingState from '../common/LoadingState';
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signInWithEmailPass, refreshUser } = useAuth();
   const {
     register,
@@ -41,8 +42,11 @@ const Login = () => {
 
       await refreshUser();
       toast.success('You are logged in!');
-      navigate('/', { replace: true });
-    } catch {      toast.error('Login failed. Check email/password.');
+
+      const destination = location.state?.from?.pathname || '/';
+      navigate(destination, { replace: true });
+    } catch {
+      toast.error('Login failed. Check email/password.');
     } finally {
       setLoading(false);
     }

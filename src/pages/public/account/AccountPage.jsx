@@ -13,7 +13,7 @@ const AccountPage = () => {
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState message="Failed to load accounts" />;
 
-  const accountExists = accounts.some(a => a.slug === accountSlug);
+  const accountExists = accounts && accounts.length > 0 && accounts.some((a) => a.slug === accountSlug);
   if (!accountExists) {
     return <Navigate to="/" replace />;
   }
