@@ -24,6 +24,7 @@ const SyncHistory = lazy(() => import('../pages/dashboard/syncHistory/SyncHistor
 const SyncRunDetails = lazy(() => import('../pages/dashboard/syncHistory/SyncRunDetails'));
 const PlatformSettings = lazy(() => import('../pages/dashboard/admin/platformSettings/PlatformSettings'));
 const AiSettings = lazy(() => import('../pages/dashboard/admin/aiSettings/AiSettings'));
+const SeedAccounts = lazy(() => import('../pages/dashboard/admin/seedAccounts/SeedAccounts'));
 
 export const router = createBrowserRouter([
   {
@@ -157,6 +158,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingState fullScreen={true} />}>
             <SyncRunDetails />
+          </Suspense>
+        ),
+      },
+      {
+        path: '/dashboard/seed-accounts',
+        element: (
+          <Suspense fallback={<LoadingState fullScreen={true} />}>
+            <SeedAccounts />
           </Suspense>
         ),
       },
