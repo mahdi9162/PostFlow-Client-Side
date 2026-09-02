@@ -16,6 +16,10 @@ import {
   AlertCircle,
   Instagram,
   Sparkles,
+  Check,
+  X,
+  Compass,
+  Tag,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../../../../hooks/useAxiosSecure';
@@ -34,7 +38,7 @@ const SeedAccounts = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionId, setActionId] = useState(null);
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['lead-seeds', statusFilter, searchVal],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -53,8 +57,9 @@ const SeedAccounts = () => {
   const seeds = data?.seeds || [];
   const totalCount = data?.count || 0;
 
-  // Compute stat counts from current dataset or overall
+  // Compute stat counts from current dataset
   const verifiedCount = seeds.filter((s) => s.status === 'verified').length;
+  const candidateCount = seeds.filter((s) => s.status === 'candidate').length;
   const pausedCount = seeds.filter((s) => s.status === 'paused').length;
   const archivedCount = seeds.filter((s) => s.status === 'archived').length;
 
@@ -79,11 +84,11 @@ const SeedAccounts = () => {
     }
   };
 
-  const handleUpdateStatus = async (id, status, enabled) => {
+  const handleUpdateStatus = async (id, status, enabled, successMsg) => {
     setActionId(id);
     try {
       await axiosSecure.patch(`/api/lead-seeds/${id}`, { status, enabled });
-      toast.success(`Seed account updated to ${status}.`);
+      toast.success(successMsg || `Seed account updated to ${status}.`);
       queryClient.invalidateQueries({ queryKey: ['lead-seeds'] });
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to update seed account.');
@@ -103,11 +108,11 @@ const SeedAccounts = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-base-content flex items-center gap-2">
-                Seed Accounts
-                <span className="badge badge-primary badge-sm font-semibold">C1 Manual</span>
+                Seed Accounts & Discovery
+                <span className="badge badge-primary badge-sm font-semibold">C1 + C2</span>
               </h1>
               <p className="text-sm text-base-content/60">
-                Manage verified Instagram source accounts used for Lead Finder target generation and candidate discovery.
+                Manage verified Instagram source seeds and review auto-discovered candidates for lead generation.
               </p>
             </div>
           </div>
@@ -161,10 +166,10 @@ const SeedAccounts = () => {
       {/* Stats and Filter Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Status Tabs */}
-        <div className="tabs tabs-boxed bg-base-200/60 p-1.5 rounded-2xl gap-1">
+        <div className="tabs tabs-boxed bg-base-200/60 p-1.5 rounded-2xl gap-1 overflow-x-auto flex-nowrap">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`tab rounded-xl text-xs font-semibold transition ${
+            className={`tab rounded-xl text-xs font-semibold transition whitespace-nowrap ${
               statusFilter === 'all' ? 'tab-active font-bold shadow-sm' : ''
             }`}
           >
@@ -172,7 +177,7 @@ const SeedAccounts = () => {
           </button>
           <button
             onClick={() => setStatusFilter('verified')}
-            className={`tab rounded-xl text-xs font-semibold transition ${
+            className={`tab rounded-xl text-xs font-semibold transition whitespace-nowrap ${
               statusFilter === 'verified' ? 'tab-active font-bold shadow-sm text-success' : ''
             }`}
           >
@@ -180,8 +185,17 @@ const SeedAccounts = () => {
             Verified ({verifiedCount})
           </button>
           <button
+            onClick={() => setStatusFilter('candidate')}
+            className={`tab rounded-xl text-xs font-semibold transition whitespace-nowrap ${
+              statusFilter === 'candidate' ? 'tab-active font-bold shadow-sm text-info' : ''
+            }`}
+          >
+            <Compass className="w-3.5 h-3.5 mr-1" />
+            Candidates ({candidateCount})
+          </button>
+          <button
             onClick={() => setStatusFilter('paused')}
-            className={`tab rounded-xl text-xs font-semibold transition ${
+            className={`tab rounded-xl text-xs font-semibold transition whitespace-nowrap ${
               statusFilter === 'paused' ? 'tab-active font-bold shadow-sm text-warning' : ''
             }`}
           >
@@ -190,7 +204,7 @@ const SeedAccounts = () => {
           </button>
           <button
             onClick={() => setStatusFilter('archived')}
-            className={`tab rounded-xl text-xs font-semibold transition ${
+            className={`tab rounded-xl text-xs font-semibold transition whitespace-nowrap ${
               statusFilter === 'archived' ? 'tab-active font-bold shadow-sm text-base-content/50' : ''
             }`}
           >
@@ -233,7 +247,7 @@ const SeedAccounts = () => {
             <p className="text-xs text-base-content/50 max-w-sm mx-auto">
               {searchVal.trim() || statusFilter !== 'all'
                 ? 'No seeds match your search filter.'
-                : 'Add verified Instagram seed accounts above to populate the Lead Finder source pool.'}
+                : 'Add verified Instagram seed accounts above or run Discovery to find candidates.'}
             </p>
           </div>
         ) : (
@@ -241,16 +255,17 @@ const SeedAccounts = () => {
             <table className="table w-full">
               <thead className="bg-base-200/50 text-base-content/70 uppercase text-[11px] font-bold">
                 <tr>
-                  <th className="py-4 px-6">Instagram Username</th>
+                  <th className="py-4 px-6">Account</th>
                   <th className="py-4 px-4 text-center">Status</th>
                   <th className="py-4 px-4 text-center">Source</th>
-                  <th className="py-4 px-4">Verified Date</th>
+                  <th className="py-4 px-4">Discovery / Verified Info</th>
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-base-200">
                 {seeds.map((seed) => {
                   const isVerified = seed.status === 'verified';
+                  const isCandidate = seed.status === 'candidate';
                   const isPaused = seed.status === 'paused';
                   const isArchived = seed.status === 'archived';
                   const isActing = actionId === seed._id;
@@ -264,8 +279,13 @@ const SeedAccounts = () => {
                             <Instagram className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-bold text-sm text-base-content">
+                            <div className="font-bold text-sm text-base-content flex items-center gap-1.5">
                               @{seed.username}
+                              {seed.followersCount ? (
+                                <span className="text-[11px] font-normal text-base-content/50">
+                                  ({(seed.followersCount).toLocaleString()} followers)
+                                </span>
+                              ) : null}
                             </div>
                             <a
                               href={seed.profileUrl}
@@ -286,6 +306,11 @@ const SeedAccounts = () => {
                             <CheckCircle2 className="w-3 h-3" /> Verified
                           </span>
                         )}
+                        {isCandidate && (
+                          <span className="badge badge-info badge-sm font-semibold gap-1 text-white">
+                            <Compass className="w-3 h-3" /> Candidate
+                          </span>
+                        )}
                         {isPaused && (
                           <span className="badge badge-warning badge-sm font-semibold gap-1 text-white">
                             <PauseCircle className="w-3 h-3" /> Paused
@@ -296,22 +321,67 @@ const SeedAccounts = () => {
                             <ArchiveIcon className="w-3 h-3" /> Archived
                           </span>
                         )}
-                        {seed.status === 'candidate' && (
-                          <span className="badge badge-info badge-sm font-semibold">Candidate</span>
-                        )}
                       </td>
 
                       {/* Source */}
                       <td className="py-4 px-4 text-center">
-                        <span className="badge badge-ghost font-mono text-xs capitalize">
+                        <span
+                          className={`badge font-mono text-xs capitalize ${
+                            seed.source === 'auto-discovery'
+                              ? 'badge-outline badge-primary font-semibold'
+                              : 'badge-ghost'
+                          }`}
+                        >
                           {seed.source || 'manual'}
                         </span>
                       </td>
 
-                      {/* Verified Date */}
-                      <td className="py-4 px-4 text-xs text-base-content/70">
-                        {seed.verifiedAt ? (
-                          <span>{new Date(seed.verifiedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                      {/* Discovery / Verified Details */}
+                      <td className="py-4 px-4 text-xs">
+                        {isCandidate ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {seed.discoveredFromUsername && (
+                                <span className="badge badge-ghost badge-xs font-semibold text-primary">
+                                  From @{seed.discoveredFromUsername}
+                                </span>
+                              )}
+                              {(seed.discoveryCount || 1) > 1 && (
+                                <span className="badge badge-primary/10 text-primary border-primary/20 badge-xs font-bold">
+                                  Seen {seed.discoveryCount}x
+                                </span>
+                              )}
+                            </div>
+                            {seed.discoverySignals && seed.discoverySignals.length > 0 && (
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {seed.discoverySignals.map((sig) => (
+                                  <span key={sig} className="badge badge-neutral badge-xs text-[10px]">
+                                    {sig}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {seed.discoveryReason && (
+                              <p className="text-base-content/50 truncate max-w-xs text-[11px]" title={seed.discoveryReason}>
+                                {seed.discoveryReason}
+                              </p>
+                            )}
+                          </div>
+                        ) : seed.verifiedAt ? (
+                          <div className="space-y-0.5">
+                            <div className="text-base-content/80 font-medium">
+                              {new Date(seed.verifiedAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </div>
+                            {seed.lastScannedAt && (
+                              <div className="text-[10px] text-base-content/40">
+                                Scanned {new Date(seed.lastScannedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </div>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-base-content/40">—</span>
                         )}
@@ -320,6 +390,45 @@ const SeedAccounts = () => {
                       {/* Actions */}
                       <td className="py-4 px-6 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Candidate Actions: Approve or Reject */}
+                          {isCandidate && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    seed._id,
+                                    'verified',
+                                    true,
+                                    `Candidate @${seed.username} approved as verified seed!`
+                                  )
+                                }
+                                disabled={isActing}
+                                className="btn btn-success btn-xs text-white rounded-lg gap-1 font-semibold shadow-xs"
+                                title="Approve candidate into verified seed pool"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                Approve
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleUpdateStatus(
+                                    seed._id,
+                                    'archived',
+                                    false,
+                                    `Candidate @${seed.username} rejected/archived.`
+                                  )
+                                }
+                                disabled={isActing}
+                                className="btn btn-ghost btn-xs text-error hover:bg-error/10 rounded-lg gap-1 font-semibold"
+                                title="Reject and archive candidate"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                Reject
+                              </button>
+                            </>
+                          )}
+
+                          {/* Verified Actions: Pause or Archive */}
                           {isVerified && (
                             <>
                               <button
@@ -343,6 +452,7 @@ const SeedAccounts = () => {
                             </>
                           )}
 
+                          {/* Paused Actions: Resume or Archive */}
                           {isPaused && (
                             <>
                               <button
@@ -366,6 +476,7 @@ const SeedAccounts = () => {
                             </>
                           )}
 
+                          {/* Archived Actions: Restore */}
                           {isArchived && (
                             <button
                               onClick={() => handleUpdateStatus(seed._id, 'verified', true)}
